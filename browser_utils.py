@@ -24,6 +24,7 @@ class BrowserManager:
 
         co.set_pref("credentials_enable_service", False)
         co.set_argument("--hide-crash-restore-bubble")
+        co.set_argument("--no-sandbox")
         if user_agent:
             co.set_user_agent(user_agent)
 
