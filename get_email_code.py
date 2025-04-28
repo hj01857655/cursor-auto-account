@@ -6,7 +6,7 @@ import requests
 
 class EmailVerificationHandler:
     def __init__(self,account):
-        self.username = 'zoowayss'
+        self.username = 'fuckcursor'
         self.session = requests.Session()
         self.account = account
         self.emailExtension = '@mailto.plus'
