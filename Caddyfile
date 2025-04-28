@@ -1,0 +1,52 @@
+# Caddyfile 配置文件
+
+# 正式环境 - 使用实际域名
+cursor-account.zoowayss.top {
+    # 开启 gzip 压缩
+    encode gzip
+
+    # 反向代理到 Flask 应用
+    reverse_proxy localhost:8001 {
+        # 健康检查
+        health_path /health
+        health_interval 30s
+        health_timeout 5s
+        health_status 200
+        
+        # 转发请求头
+        header_up Host {host}
+        header_up X-Real-IP {remote}
+        header_up X-Forwarded-For {remote}
+        header_up X-Forwarded-Proto {scheme}
+    }
+
+    # 日志配置
+    log {
+        output file /var/log/caddy/cursor-account.log
+        format json
+        level INFO
+    }
+
+    # 错误页面
+    handle_errors {
+        respond "{http.error.status_code} {http.error.status_text}" {http.error.status_code}
+    }
+
+    # 安全性设置
+    header {
+        # 安全相关的 HTTP 头
+        Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+        X-Content-Type-Options "nosniff"
+        X-Frame-Options "DENY"
+        Referrer-Policy "strict-origin-when-cross-origin"
+        X-XSS-Protection "1; mode=block"
+        
+        # 移除服务器信息
+        -Server
+    }
+}
+
+# 本地开发环境 - 使用端口
+:8081 {
+    reverse_proxy localhost:8001
+} 

@@ -12,12 +12,12 @@ import register as account_register
 # 初始化 Flask 应用
 app = Flask(__name__)
 
-# 配置数据库连接
-DB_HOST = '47.109.39.201'
-DB_PORT = 3306
-DB_USER = 'root'
-DB_PASSWORD = 'f4N:1!GRbb]UtdGeP:rP'
-DB_NAME = 'cursor_accounts'
+# 从环境变量获取数据库配置
+DB_HOST = os.environ.get('DB_HOST', 'localhost')
+DB_PORT = os.environ.get('DB_PORT', 3306)
+DB_USER = os.environ.get('DB_USER', 'root')
+DB_PASSWORD = os.environ.get('DB_PASSWORD', 'root')
+DB_NAME = os.environ.get('DB_NAME', 'cursor_accounts')
 
 # 设置 SQLAlchemy 数据库 URI
 app.config['SQLALCHEMY_DATABASE_URI'] = f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_NAME}'
@@ -62,17 +62,18 @@ class Account(db.Model):
 # 创建数据库和表
 def init_db():
     with app.app_context():
-        # 尝试创建数据库
-        engine = create_engine(f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/')
         try:
+            # 尝试创建数据库
+            engine = create_engine(f'mysql+pymysql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/')
             with engine.connect() as conn:
                 conn.execute(text(f'CREATE DATABASE IF NOT EXISTS {DB_NAME}'))
                 conn.commit()
+            
+            # 创建表
+            db.create_all()
+            print("数据库初始化成功")
         except Exception as e:
-            print(f"创建数据库时出错: {e}")
-        
-        # 创建表
-        db.create_all()
+            print(f"数据库初始化错误: {e}")
 
 # 生成随机密码
 def generate_password(length=12):
@@ -105,7 +106,7 @@ def get_account():
             if not success:
                 return jsonify({'status': 'error', 'message': '注册失败，请稍后再试'}), 500
             
-            # 计算过期时间 (30天后)
+            # 计算过期时间 (15天后)
             create_time = int(time.time())
             expire_time = create_time + (15 * 24 * 60 * 60)
             
@@ -117,7 +118,7 @@ def get_account():
                 last_name=last_name,
                 create_time=create_time,
                 expire_time=expire_time,
-                is_used=0  # 标记为已使用
+                is_used=1  # 标记为已使用
             )
             db.session.add(account)
             db.session.commit()
@@ -165,8 +166,8 @@ def add_account():
         create_time = int(time.time())
         expire_time = data.get('expire_time')
         if not expire_time:
-            # 默认30天后过期
-            expire_time = create_time + (30 * 24 * 60 * 60)
+            # 默认15天后过期
+            expire_time = create_time + (15 * 24 * 60 * 60)
         
         # 创建新账号
         account = Account(
@@ -190,12 +191,6 @@ def add_account():
     
     except Exception as e:
         return jsonify({'status': 'error', 'message': str(e)}), 500
-
-# 前端页面 - 查看账号列表
-@app.route('/', methods=['GET'])
-def index():
-    accounts = Account.query.all()
-    return render_template('index.html', accounts=[account.to_dict() for account in accounts], now=datetime.now())
 
 # 修改账号使用状态
 @app.route('/api/account/<int:account_id>/status', methods=['PUT'])
@@ -233,6 +228,17 @@ def update_account_status(account_id):
             'message': str(e)
         }), 500
 
+# 前端页面 - 查看账号列表
+@app.route('/', methods=['GET'])
+def index():
+    accounts = Account.query.all()
+    return render_template('index.html', accounts=[account.to_dict() for account in accounts], now=datetime.now())
+
+# 健康检查
+@app.route('/health', methods=['GET'])
+def health_check():
+    return jsonify({'status': 'ok', 'time': datetime.now().strftime('%Y-%m-%d %H:%M:%S')}), 200
+
 # 初始化应用
 if __name__ == '__main__':
     # 创建templates目录
@@ -242,5 +248,9 @@ if __name__ == '__main__':
     # 初始化数据库
     init_db()
     
+    # 获取环境变量中的主机和端口，默认为0.0.0.0:8000
+    host = os.environ.get('HOST', '0.0.0.0')
+    port = int(os.environ.get('PORT', 8000))
+    
     # 启动应用
-    app.run(host='0.0.0.0', port=8000, debug=True) 
+    app.run(host=host, port=port, debug=(os.environ.get('DEBUG', 'False').lower() == 'true')) 

@@ -1,0 +1,32 @@
+version: '3'
+
+services:
+
+  # 账号管理服务
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile.slim  # 使用精简Dockerfile
+    container_name: cursor-app
+    restart: always
+    environment:
+      - DEBUG=false
+      - DB_HOST=localhost
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PASSWORD=root
+      - DB_NAME=cursor_accounts
+    volumes:
+      - ./screenshots:/app/screenshots
+      - /usr/bin/google-chrome:/usr/bin/google-chrome  # 映射宿主机的Chrome
+      - /usr/lib/chromium-browser:/usr/lib/chromium-browser  # 可能需要的依赖库
+      - /usr/share/fonts/:/usr/share/fonts/  # 字体文件
+      - /etc/fonts/:/etc/fonts/  # 字体配置
+    ports:
+      - "8001:8000"  # 映射到8001端口以适配Caddy配置
+    networks:
+      - cursor_network
+
+networks:
+  cursor_network:
+    driver: bridge
