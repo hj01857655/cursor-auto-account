@@ -2,13 +2,22 @@
 
 本项目是站在巨人的肩膀上开发。 [源项目地址](https://github.com/chengazhen/cursor-auto-free) [参考项目](https://github.com/yeongpin/cursor-free-vip)
 
+项目刚上线，还有很多bug 慢慢填吧
+
 这是一个用于管理 Cursor 账号的 Web 服务，支持自动注册、存储账号信息、查看和修改账号状态。
+
+拿到账号密码，到自己的浏览器登录，[到这里](https://tempmail.plus/en/#!) 获取验证码
 
 [预览站点](https://cursor-account.zoowayss.top)
 
 资源有限，请勿滥用账号
 
 ![img.png](./.assets/image.png)
+
+## 如何使用
+
+点击获取账号，这部分过程会很慢，请耐心等待，请勿多次点击获取账号，服务器资源有限请谅解。获取完会弹窗，复制即可
+拿到账号密码，到自己的浏览器登录，[到这里](https://tempmail.plus/en/#!) 获取验证码
 
 ## 功能特点
 
