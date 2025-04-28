@@ -6,9 +6,13 @@ import logging
 import time
 from enum import Enum
 import random
+from dotenv import load_dotenv
 
 from browser_utils import BrowserManager
 from get_email_code import EmailVerificationHandler
+
+# 加载环境变量
+load_dotenv()
 
 # 配置日志
 logging.basicConfig(
@@ -286,7 +290,7 @@ class EmailGenerator:
     def __init__(
         self,
     ):
-        self.domain = "zoowayss.eu.org"
+        self.domain = os.getenv('EMAIL_DOMAIN', 'zoowayss.eu.org')  # 从环境变量读取域名，如果未设置则使用默认值
         self.names = self.load_names()
         self.default_first_name = self.generate_random_name()
         self.default_last_name = self.generate_random_name()
