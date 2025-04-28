@@ -285,16 +285,9 @@ def handle_turnstile(tab, max_retries: int = 2, retry_interval: tuple = (1, 2)) 
 class EmailGenerator:
     def __init__(
         self,
-        password="".join(
-            random.choices(
-                "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*",
-                k=12,
-            )
-        ),
     ):
         self.domain = "zoowayss.top"
         self.names = self.load_names()
-        self.default_password = str(password)
         self.default_first_name = self.generate_random_name()
         self.default_last_name = self.generate_random_name()
 
@@ -317,12 +310,17 @@ class EmailGenerator:
         length = random.randint(0, length)  # Generate a random int between 0 and length
         timestamp = str(int(time.time()))[-length:]  # Use the last length digits of timestamp
         return f"{self.default_first_name}{timestamp}@{self.domain}"
+        
+    def generate_random_password(self, length=12):
+        """Generate a random password"""
+        chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*"
+        return "".join(random.choices(chars, k=length))
 
     def get_account_info(self):
         """Get complete account information"""
         return {
             "email": self.generate_email(),
-            "password": self.default_password,
+            "password": self.generate_random_password(),
             "first_name": self.default_first_name,
             "last_name": self.default_last_name,
         }

@@ -78,11 +78,6 @@ def init_db():
         except Exception as e:
             print(f"数据库初始化错误: {e}")
 
-# 生成随机密码
-def generate_password(length=12):
-    chars = string.ascii_letters + string.digits + '!@#$%^&*'
-    return ''.join(random.choice(chars) for _ in range(length))
-
 # 获取一个可用账号
 @app.route('/api/account', methods=['GET'])
 def get_account():
@@ -93,7 +88,7 @@ def get_account():
         
         # 从返回的字典中获取信息
         email = account_info["email"]
-        password = account_info["password"]
+        password = account_info["password"]  # 现在每次调用都会生成新的随机密码
         first_name = account_info["first_name"]
         last_name = account_info["last_name"]
         
@@ -116,7 +111,7 @@ def get_account():
             last_name=last_name,
             create_time=create_time,
             expire_time=expire_time,
-            is_used=1  # 标记为已使用
+            is_used=0  # 标记为已使用
         )
         db.session.add(account)
         db.session.commit()
@@ -124,56 +119,6 @@ def get_account():
         return jsonify({
             'status': 'success',
             'message': '新账号已创建',
-            'account': account.to_dict()
-        })
-    
-    except Exception as e:
-        return jsonify({'status': 'error', 'message': str(e)}), 500
-
-# 手动添加账号
-@app.route('/api/account', methods=['POST'])
-def add_account():
-    try:
-        data = request.json
-        
-        if not data or not data.get('email') or not data.get('password'):
-            return jsonify({
-                'status': 'error',
-                'message': '请提供有效的邮箱和密码'
-            }), 400
-        
-        # 检查账号是否已存在
-        existing_account = Account.query.filter_by(email=data['email']).first()
-        if existing_account:
-            return jsonify({
-                'status': 'error',
-                'message': '该邮箱已存在'
-            }), 400
-        
-        # 计算创建时间和过期时间
-        create_time = int(time.time())
-        expire_time = data.get('expire_time')
-        if not expire_time:
-            # 默认15天后过期
-            expire_time = create_time + (15 * 24 * 60 * 60)
-        
-        # 创建新账号
-        account = Account(
-            email=data['email'],
-            password=data['password'],
-            first_name=data.get('first_name', ''),
-            last_name=data.get('last_name', ''),
-            create_time=create_time,
-            expire_time=expire_time,
-            is_used=data.get('is_used', 0)
-        )
-        
-        db.session.add(account)
-        db.session.commit()
-        
-        return jsonify({
-            'status': 'success',
-            'message': '账号添加成功',
             'account': account.to_dict()
         })
     
