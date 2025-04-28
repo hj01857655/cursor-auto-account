@@ -84,58 +84,43 @@ def generate_password(length=12):
 @app.route('/api/account', methods=['GET'])
 def get_account():
     try:
-        # 查询是否有未使用的账号
-        account = Account.query.filter_by(is_used=0).first()
+        # 生成随机名字和账号信息
+        email_generator = account_register.EmailGenerator()
+        account_info = email_generator.get_account_info()
         
-        # 如果没有可用账号，生成一个新账号
-        if not account:
-            # 生成随机名字和账号信息
-            email_generator = account_register.EmailGenerator()
-            account_info = email_generator.get_account_info()
-            
-            # 从返回的字典中获取信息
-            email = account_info["email"]
-            password = account_info["password"]
-            first_name = account_info["first_name"]
-            last_name = account_info["last_name"]
-            
-            # 注册账号
-            registration = account_register.Register(first_name, last_name, email, password)
-            success = registration.register()
-            
-            if not success:
-                return jsonify({'status': 'error', 'message': '注册失败，请稍后再试'}), 500
-            
-            # 计算过期时间 (15天后)
-            create_time = int(time.time())
-            expire_time = create_time + (15 * 24 * 60 * 60)
-            
-            # 保存到数据库
-            account = Account(
-                email=email,
-                password=password,
-                first_name=first_name,
-                last_name=last_name,
-                create_time=create_time,
-                expire_time=expire_time,
-                is_used=1  # 标记为已使用
-            )
-            db.session.add(account)
-            db.session.commit()
-            
-            return jsonify({
-                'status': 'success',
-                'message': '新账号已创建',
-                'account': account.to_dict()
-            })
+        # 从返回的字典中获取信息
+        email = account_info["email"]
+        password = account_info["password"]
+        first_name = account_info["first_name"]
+        last_name = account_info["last_name"]
         
-        # 标记账号为已使用
-        account.is_used = 1
+        # 注册账号
+        registration = account_register.Register(first_name, last_name, email, password)
+        success = registration.register()
+        
+        if not success:
+            return jsonify({'status': 'error', 'message': '注册失败，请稍后再试'}), 500
+        
+        # 计算过期时间 (15天后)
+        create_time = int(time.time())
+        expire_time = create_time + (15 * 24 * 60 * 60)
+        
+        # 保存到数据库
+        account = Account(
+            email=email,
+            password=password,
+            first_name=first_name,
+            last_name=last_name,
+            create_time=create_time,
+            expire_time=expire_time,
+            is_used=1  # 标记为已使用
+        )
+        db.session.add(account)
         db.session.commit()
         
         return jsonify({
             'status': 'success',
-            'message': '找到可用账号',
+            'message': '新账号已创建',
             'account': account.to_dict()
         })
     
