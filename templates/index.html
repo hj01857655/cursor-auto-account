@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cursor 账号管理</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+            color: #333;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+        h1 {
+            color: #2c3e50;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+        }
+        .account-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .account-table th, .account-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        .account-table th {
+            background-color: #f8f9fa;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .account-table tr:hover {
+            background-color: #f1f1f1;
+        }
+        .status {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+        }
+        .status-used {
+            background-color: #e74c3c;
+            color: white;
+        }
+        .status-available {
+            background-color: #2ecc71;
+            color: white;
+        }
+        .actions {
+            margin-top: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .btn {
+            display: inline-block;
+            padding: 8px 16px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+        }
+        .btn:hover {
+            background-color: #2980b9;
+        }
+        .btn-loading {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+        .stats {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 20px;
+        }
+        .stat-card {
+            flex: 1;
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .stat-title {
+            font-size: 0.9em;
+            color: #7f8c8d;
+            margin-bottom: 5px;
+        }
+        .stat-value {
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .expired {
+            color: #e74c3c;
+        }
+        .footer {
+            margin-top: 40px;
+            text-align: center;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 9999;
+            max-width: 300px;
+        }
+        .toast {
+            padding: 12px 15px;
+            margin-bottom: 10px;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            color: white;
+            font-weight: 500;
+            animation: fadeInOut 3s ease-in-out;
+            opacity: 0;
+            cursor: pointer;
+        }
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translateY(-20px); }
+            10% { opacity: 1; transform: translateY(0); }
+            90% { opacity: 1; transform: translateY(0); }
+            100% { opacity: 0; transform: translateY(-20px); }
+        }
+        .toast-success {
+            background-color: #2ecc71;
+        }
+        .toast-error {
+            background-color: #e74c3c;
+        }
+        .copyable {
+            cursor: pointer;
+            padding: 2px 4px;
+            background-color: #f8f9fa;
+            border-radius: 3px;
+            position: relative;
+        }
+        .copyable:hover {
+            background-color: #e9ecef;
+        }
+        .copyable::after {
+            content: "点击复制";
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #333;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+        .copyable:hover::after {
+            opacity: 0.9;
+        }
+        .copied::after {
+            content: "";
+            background-color: #2ecc71;
+        }
+        .status-toggle {
+            cursor: pointer;
+        }
+        .actions-col {
+            white-space: nowrap;
+        }
+        .btn-sm {
+            padding: 3px 8px;
+            font-size: 0.8em;
+            margin-left: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Cursor 账号管理系统</h1>
+        
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-title">总账号数</div>
+                <div id="total-accounts" class="stat-value">{{ accounts|length }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">已使用账号</div>
+                <div id="used-accounts" class="stat-value">{{ accounts|selectattr('is_used', 'equalto', 1)|list|length }}</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-title">可用账号</div>
+                <div id="available-accounts" class="stat-value">{{ accounts|selectattr('is_used', 'equalto', 0)|list|length }}</div>
+            </div>
+        </div>
+        
+        <div class="actions">
+            <h2>账号列表</h2>
+            <button id="get-account-btn" class="btn" onclick="getAccount()">获取账号</button>
+        </div>
+        
+        <table class="account-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>邮箱</th>
+                    <th>密码</th>
+                    <th>姓名</th>
+                    <th>创建时间</th>
+                    <th>过期时间</th>
+                    <th>状态</th>
+                    <th>操作</th>
+                </tr>
+            </thead>
+            <tbody id="accounts-tbody">
+                {% for account in accounts %}
+                {% set current_timestamp = now.timestamp()|int %}
+                {% set is_expired = current_timestamp > account.expire_time %}
+                <tr{% if is_expired %} class="expired"{% endif %} data-id="{{ account.id }}">
+                    <td>{{ account.id }}</td>
+                    <td><span class="copyable" onclick="copyText('{{ account.email }}', this)">{{ account.email }}</span></td>
+                    <td><span class="copyable" onclick="copyText('{{ account.password }}', this)">{{ account.password }}</span></td>
+                    <td>{{ account.first_name }} {{ account.last_name }}</td>
+                    <td>{{ account.create_time|timestamp_to_date }}</td>
+                    <td>{{ account.expire_time_fmt }}</td>
+                    <td>
+                        {% if account.is_used == 1 %}
+                            <span class="status status-used status-toggle" data-id="{{ account.id }}" data-status="1" onclick="toggleStatus({{ account.id }}, 0, this)">已使用</span>
+                        {% else %}
+                            <span class="status status-available status-toggle" data-id="{{ account.id }}" data-status="0" onclick="toggleStatus({{ account.id }}, 1, this)">可用</span>
+                        {% endif %}
+                    </td>
+                    <td class="actions-col">
+                        <button class="btn btn-sm" onclick="copyInfo({{ account.id }})">复制账号信息</button>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        
+        <div class="footer">
+            <p>© {{ now.year }} Cursor 账号管理系统</p>
+        </div>
+    </div>
+    
+    <!-- 提示容器 -->
+    <div id="toast-container" class="toast-container"></div>
+
+    <script>
+        // 获取当前时间戳
+        const currentTimestamp = Math.floor(Date.now() / 1000);
+        
+        // 格式化时间戳为日期字符串
+        function formatTimestamp(timestamp) {
+            const date = new Date(timestamp * 1000);
+            return date.toLocaleString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit'
+            });
+        }
+        
+        // 显示通知
+        function showNotification(message, type) {
+            const toastContainer = document.getElementById('toast-container');
+            
+            // 创建提示元素
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+            
+            // 点击关闭
+            toast.onclick = function() {
+                toastContainer.removeChild(toast);
+            };
+            
+            // 添加到容器
+            toastContainer.appendChild(toast);
+            
+            // 3秒后自动移除
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toastContainer.removeChild(toast);
+                }
+            }, 3000);
+        }
+        
+        // 获取账号
+        function getAccount() {
+            const button = document.getElementById('get-account-btn');
+            
+            // 防止重复点击
+            if (button.classList.contains('btn-loading')) {
+                return;
+            }
+            
+            // 添加加载状态
+            button.classList.add('btn-loading');
+            button.innerHTML = '<span class="spinner"></span>获取中...';
+            
+            // 发起AJAX请求
+            fetch('/api/account')
+                .then(response => response.json())
+                .then(data => {
+                    // 恢复按钮状态
+                    button.classList.remove('btn-loading');
+                    button.textContent = '获取账号';
+                    
+                    if (data.status === 'success') {
+                        showNotification(data.message, 'success');
+                        // 更新页面数据
+                        updateAccountsList(data.account);
+                    } else {
+                        showNotification(data.message || '获取账号失败', 'error');
+                    }
+                })
+                .catch(error => {
+                    // 恢复按钮状态
+                    button.classList.remove('btn-loading');
+                    button.textContent = '获取账号';
+                    
+                    showNotification('请求失败: ' + error.message, 'error');
+                });
+        }
+        
+        // 更新账号列表
+        function updateAccountsList(newAccount) {
+            // 获取表格tbody
+            const tbody = document.getElementById('accounts-tbody');
+            
+            // 判断账号是否过期
+            const isExpired = currentTimestamp > newAccount.expire_time;
+            
+            // 创建新行
+            const newRow = document.createElement('tr');
+            if (isExpired) {
+                newRow.classList.add('expired');
+            }
+            newRow.setAttribute('data-id', newAccount.id);
+            
+            // 设置行内容
+            newRow.innerHTML = `
+                <td>${newAccount.id}</td>
+                <td><span class="copyable" onclick="copyText('${newAccount.email}', this)">${newAccount.email}</span></td>
+                <td><span class="copyable" onclick="copyText('${newAccount.password}', this)">${newAccount.password}</span></td>
+                <td>${newAccount.first_name} ${newAccount.last_name}</td>
+                <td>${formatTimestamp(newAccount.create_time)}</td>
+                <td>${newAccount.expire_time_fmt}</td>
+                <td>
+                    <span class="status status-used status-toggle" data-id="${newAccount.id}" data-status="1" onclick="toggleStatus(${newAccount.id}, 0, this)">已使用</span>
+                </td>
+                <td class="actions-col">
+                    <button class="btn btn-sm" onclick="copyInfo(${newAccount.id})">复制账号信息</button>
+                </td>
+            `;
+            
+            // 添加到表格最前面
+            if (tbody.firstChild) {
+                tbody.insertBefore(newRow, tbody.firstChild);
+            } else {
+                tbody.appendChild(newRow);
+            }
+            
+            // 更新统计数据
+            updateStats();
+        }
+        
+        // 更新统计数据
+        function updateStats() {
+            // 获取所有行
+            const rows = document.getElementById('accounts-tbody').getElementsByTagName('tr');
+            
+            // 计算总数和已使用数量
+            const total = rows.length;
+            let used = 0;
+            
+            for (let i = 0; i < rows.length; i++) {
+                const statusCell = rows[i].cells[6].querySelector('.status');
+                if (statusCell.getAttribute('data-status') === '1') {
+                    used++;
+                }
+            }
+            
+            // 更新统计卡片
+            document.getElementById('total-accounts').textContent = total;
+            document.getElementById('used-accounts').textContent = used;
+            document.getElementById('available-accounts').textContent = total - used;
+        }
+        
+        // 复制文本
+        function copyText(text, element) {
+            // 使用现代Clipboard API
+            if (navigator.clipboard && window.isSecureContext) {
+                // 使用现代的Clipboard API
+                navigator.clipboard.writeText(text)
+                    .then(() => {
+                        showCopiedEffect();
+                    })
+                    .catch(err => {
+                        console.error('复制失败: ', err);
+                        fallbackCopy();
+                    });
+            } else {
+                // 回退到传统方法
+                fallbackCopy();
+            }
+            
+            // 传统复制方法
+            function fallbackCopy() {
+                // 创建文本区域而不是输入框，以保留换行符
+                const textArea = document.createElement('textarea');
+                textArea.value = text;
+                textArea.style.position = 'fixed';  // 避免页面滚动
+                document.body.appendChild(textArea);
+                textArea.focus();
+                textArea.select();
+                
+                try {
+                    const successful = document.execCommand('copy');
+                    if (successful) {
+                        showCopiedEffect();
+                    } else {
+                        console.error('复制命令不可用');
+                    }
+                } catch (err) {
+                    console.error('复制出错: ', err);
+                }
+                
+                document.body.removeChild(textArea);
+            }
+            
+            // 显示复制成功效果
+            function showCopiedEffect() {
+                // 显示复制成功效果
+                element.classList.add('copied');
+                setTimeout(() => {
+                    element.classList.remove('copied');
+                }, 1500);
+                
+                showNotification('已复制到剪贴板', 'success');
+            }
+        }
+        
+        // 复制完整账号信息
+        function copyInfo(id) {
+            const row = document.querySelector(`tr[data-id="${id}"]`);
+            if (!row) return;
+            
+            const email = row.cells[1].innerText;
+            const password = row.cells[2].innerText;
+            
+            // 使用\r\n作为换行符以确保在所有平台上正确显示
+            const text = "账号信息:\r\n邮箱: " + email + "\r\n密码: " + password;
+            
+            copyText(text, row.cells[7].querySelector('.btn'));
+        }
+        
+        // 切换账号状态
+        function toggleStatus(id, newStatus, element) {
+            // 阻止事件冒泡
+            event.stopPropagation();
+            
+            // 防止重复点击
+            if (element.classList.contains('btn-loading')) {
+                return;
+            }
+            
+            // 添加加载效果
+            const originalText = element.innerText;
+            element.innerText = '更新中...';
+            element.classList.add('btn-loading');
+            
+            // 发送更新请求
+            fetch(`/api/account/${id}/status`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    is_used: newStatus
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                // 移除加载效果
+                element.classList.remove('btn-loading');
+                
+                if (data.status === 'success') {
+                    if (newStatus === 1) {
+                        // 更新为已使用
+                        element.innerText = '已使用';
+                        element.classList.remove('status-available');
+                        element.classList.add('status-used');
+                        element.setAttribute('data-status', '1');
+                        element.setAttribute('onclick', `toggleStatus(${id}, 0, this)`);
+                    } else {
+                        // 更新为可用
+                        element.innerText = '可用';
+                        element.classList.remove('status-used');
+                        element.classList.add('status-available');
+                        element.setAttribute('data-status', '0');
+                        element.setAttribute('onclick', `toggleStatus(${id}, 1, this)`);
+                    }
+                    
+                    // 更新统计数据
+                    updateStats();
+                    
+                    showNotification('账号状态已更新', 'success');
+                } else {
+                    // 恢复原始文本
+                    element.innerText = originalText;
+                    showNotification(data.message || '更新状态失败', 'error');
+                }
+            })
+            .catch(error => {
+                // 恢复原始文本
+                element.classList.remove('btn-loading');
+                element.innerText = originalText;
+                
+                showNotification('请求失败: ' + error.message, 'error');
+            });
+        }
+    </script>
+</body>
+</html> 

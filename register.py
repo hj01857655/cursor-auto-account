@@ -74,7 +74,7 @@ class Register(object):
         print(f"Registering {self.first_name} {self.last_name} with email {self.email} and password {self.password}")
         self.tab.get('https://authenticator.cursor.sh/sign-up')
         self.sign_up_account(self.tab)
-        
+        return True
 
     def login(self):
         print(f"Logging in {self.first_name} {self.last_name} with email {self.email} and password {self.password}")
