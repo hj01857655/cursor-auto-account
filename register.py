@@ -286,7 +286,7 @@ class EmailGenerator:
     def __init__(
         self,
     ):
-        self.domain = "zoowayss.top"
+        self.domain = "zoowayss.eu.org"
         self.names = self.load_names()
         self.default_first_name = self.generate_random_name()
         self.default_last_name = self.generate_random_name()
