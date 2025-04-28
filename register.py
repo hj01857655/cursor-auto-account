@@ -154,6 +154,7 @@ class Register(object):
                     break
             except Exception as e:
                 logging.error(f"Verification code process error: {str(e)}")
+                return False
 
         handle_turnstile(tab)
         wait_time = random.randint(1, 2)
