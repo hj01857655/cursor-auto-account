@@ -18,7 +18,7 @@
 ![img.png](./.assets/image-1745820621145.png)
 拿到账号密码，到自己的浏览器登录，[到这里](https://tempmail.plus/en/#!) 获取验证码
 
-需要改一下名称
+需要改一下名称 , 代码改了一下 现在填  fuckcursor
 
 ![image-20250428115252533](./.assets/image-20250428115252533.png)
 
@@ -49,69 +49,15 @@ git clone https://github.com/yourusername/cursor-auto-account.git
 cd cursor-auto-account
 ```
 
-2. 修改 Caddyfile 中的域名（如果需要）
+2. 启动项目
 ```
-# 修改 Caddyfile 中的域名
-vim Caddyfile
+uv pip install -r requirements.txt
+python app.py
 ```
 
-3. 启动服务
-```bash
-docker-compose up -d
-```
 
 4. 访问服务
-   - 网页界面: http://localhost:8080
-   - API接口: http://localhost:8080/api/account
-
-## API 文档
-
-### 获取账号
-
-```
-GET /api/account
-```
-
-响应示例:
-```json
-{
-  "status": "success",
-  "message": "找到可用账号",
-  "account": {
-    "id": 1,
-    "email": "example@zoowayss.top",
-    "password": "password123",
-    "first_name": "John",
-    "last_name": "Doe",
-    "create_time": 1678901234,
-    "expire_time": 1681579634,
-    "is_used": 1,
-    "expire_time_fmt": "2023-04-15 12:00:34"
-  }
-}
-```
-
-### 修改账号状态
-
-```
-PUT /api/account/{id}/status
-Content-Type: application/json
-
-{
-  "is_used": 0
-}
-```
-
-## 部署注意事项
-
-1. **环境要求**:
-   - 需要 Chrome 浏览器（用于自动注册账号）
-   - MySQL 数据库
-   - Docker 和 Docker Compose（推荐部署方式）
-
-2. **数据库配置**:
-   - 默认使用环境变量配置数据库连接
-   - 可在 docker-compose.yml 中修改数据库配置
+   - 网页界面: http://localhost:8081
 
 ## 免责声明
 
@@ -120,7 +66,8 @@ Content-Type: application/json
 3. 本项目不保证所创建账号的长期可用性，Cursor官方政策变更可能导致功能失效
 4. 请遵守Cursor的服务条款，合理使用生成的账号
 5. 项目维护者不对使用本工具导致的任何问题负责
-
+## Star History
+[![Star History Chart](https://api.star-history.com/svg?repos=zoowayss/cursor-auto-account&type=Date)](https://www.star-history.com/#zoowayss/cursor-auto-account&Date)
 ## 许可证
 
 MIT 
