@@ -185,6 +185,111 @@
             font-size: 0.8em;
             margin-left: 5px;
         }
+        /* 分页样式 */
+        .pagination {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+            gap: 5px;
+        }
+        .pagination a, .pagination span {
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            color: #333;
+            text-decoration: none;
+            border-radius: 4px;
+        }
+        .pagination a:hover {
+            background-color: #f5f5f5;
+        }
+        .pagination .active {
+            background-color: #3498db;
+            color: white;
+            border-color: #3498db;
+        }
+        .pagination .disabled {
+            color: #aaa;
+            cursor: not-allowed;
+        }
+        /* 弹窗样式 */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 1000;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        .modal-content {
+            background-color: #fff;
+            margin: 10% auto;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 500px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+        }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+            margin-bottom: 15px;
+        }
+        .modal-title {
+            font-size: 1.2em;
+            color: #2c3e50;
+            font-weight: bold;
+        }
+        .close {
+            color: #aaa;
+            font-size: 1.5em;
+            cursor: pointer;
+        }
+        .close:hover {
+            color: #333;
+        }
+        .account-info {
+            margin-bottom: 15px;
+        }
+        .info-row {
+            margin-bottom: 10px;
+        }
+        .info-label {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+        .info-value {
+            word-break: break-all;
+        }
+        .copy-btn {
+            display: inline-block;
+            padding: 3px 8px;
+            background-color: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.8em;
+            margin-left: 5px;
+        }
+        .copy-btn:hover {
+            background-color: #e9ecef;
+        }
+        .copy-all-btn {
+            width: 100%;
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        .copy-all-btn:hover {
+            background-color: #2980b9;
+        }
     </style>
 </head>
 <body>
@@ -194,7 +299,7 @@
         <div class="stats">
             <div class="stat-card">
                 <div class="stat-title">总账号数</div>
-                <div id="total-accounts" class="stat-value">{{ accounts|length }}</div>
+                <div id="total-accounts" class="stat-value">{{ total_accounts }}</div>
             </div>
             <div class="stat-card">
                 <div class="stat-title">已使用账号</div>
@@ -250,13 +355,70 @@
             </tbody>
         </table>
         
+        <!-- 分页控件 -->
+        <div class="pagination">
+            {% if current_page > 1 %}
+                <a href="?page=1&per_page={{ per_page }}">首页</a>
+                <a href="?page={{ current_page - 1 }}&per_page={{ per_page }}">上一页</a>
+            {% else %}
+                <span class="disabled">首页</span>
+                <span class="disabled">上一页</span>
+            {% endif %}
+            
+            {% for p in range(max(1, current_page - 2), min(total_pages + 1, current_page + 3)) %}
+                {% if p == current_page %}
+                    <span class="active">{{ p }}</span>
+                {% else %}
+                    <a href="?page={{ p }}&per_page={{ per_page }}">{{ p }}</a>
+                {% endif %}
+            {% endfor %}
+            
+            {% if current_page < total_pages %}
+                <a href="?page={{ current_page + 1 }}&per_page={{ per_page }}">下一页</a>
+                <a href="?page={{ total_pages }}&per_page={{ per_page }}">末页</a>
+            {% else %}
+                <span class="disabled">下一页</span>
+                <span class="disabled">末页</span>
+            {% endif %}
+        </div>
+        
+        <!-- 账号信息弹窗 -->
+        <div id="accountModal" class="modal">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <span class="modal-title">账号信息</span>
+                    <span class="close" onclick="closeModal()">&times;</span>
+                </div>
+                <div class="account-info">
+                    <div class="info-row">
+                        <span class="info-label">邮箱:</span>
+                        <span id="modal-email" class="info-value"></span>
+                        <span class="copy-btn" onclick="copyText(document.getElementById('modal-email').textContent, this)">复制</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">密码:</span>
+                        <span id="modal-password" class="info-value"></span>
+                        <span class="copy-btn" onclick="copyText(document.getElementById('modal-password').textContent, this)">复制</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">姓名:</span>
+                        <span id="modal-name" class="info-value"></span>
+                    </div>
+                    <div class="info-row">
+                        <span class="info-label">过期时间:</span>
+                        <span id="modal-expire" class="info-value"></span>
+                    </div>
+                </div>
+                <button class="copy-all-btn" onclick="copyAllInfo()">复制全部信息</button>
+            </div>
+        </div>
+        
+        <div class="toast-container" id="toast-container"></div>
+        
         <div class="footer">
             <p>© {{ now.year }} Cursor 账号管理系统</p>
         </div>
     </div>
-    
-    <!-- 提示容器 -->
-    <div id="toast-container" class="toast-container"></div>
 
     <script>
         // 获取当前时间戳
@@ -322,11 +484,10 @@
                     button.textContent = '获取账号';
                     
                     if (data.status === 'success') {
-                        showNotification(data.message, 'success');
-                        // 更新页面数据
-                        updateAccountsList(data.account);
+                        showAccountModal(data.account);
+                        showToast('账号获取成功', 'success');
                     } else {
-                        showNotification(data.message || '获取账号失败', 'error');
+                        showToast(data.message || '获取账号失败', 'error');
                     }
                 })
                 .catch(error => {
@@ -334,140 +495,83 @@
                     button.classList.remove('btn-loading');
                     button.textContent = '获取账号';
                     
-                    showNotification('请求失败: ' + error.message, 'error');
+                    showToast('获取账号失败: ' + error, 'error');
                 });
         }
         
-        // 更新账号列表
-        function updateAccountsList(newAccount) {
-            // 获取表格tbody
-            const tbody = document.getElementById('accounts-tbody');
+        // 显示账号弹窗
+        function showAccountModal(account) {
+            document.getElementById('modal-email').textContent = account.email;
+            document.getElementById('modal-password').textContent = account.password;
+            document.getElementById('modal-name').textContent = `${account.first_name} ${account.last_name}`;
+            document.getElementById('modal-expire').textContent = account.expire_time_fmt;
             
-            // 判断账号是否过期
-            const isExpired = currentTimestamp > newAccount.expire_time;
-            
-            // 创建新行
-            const newRow = document.createElement('tr');
-            if (isExpired) {
-                newRow.classList.add('expired');
-            }
-            newRow.setAttribute('data-id', newAccount.id);
-            
-            // 设置行内容
-            newRow.innerHTML = `
-                <td>${newAccount.id}</td>
-                <td><span class="copyable" onclick="copyText('${newAccount.email}', this)">${newAccount.email}</span></td>
-                <td><span class="copyable" onclick="copyText('${newAccount.password}', this)">${newAccount.password}</span></td>
-                <td>${newAccount.first_name} ${newAccount.last_name}</td>
-                <td>${formatTimestamp(newAccount.create_time)}</td>
-                <td>${newAccount.expire_time_fmt}</td>
-                <td>
-                    <span class="status status-used status-toggle" data-id="${newAccount.id}" data-status="1" onclick="toggleStatus(${newAccount.id}, 0, this)">已使用</span>
-                </td>
-                <td class="actions-col">
-                    <button class="btn btn-sm" onclick="copyInfo(${newAccount.id})">复制账号信息</button>
-                </td>
-            `;
-            
-            // 添加到表格最前面
-            if (tbody.firstChild) {
-                tbody.insertBefore(newRow, tbody.firstChild);
-            } else {
-                tbody.appendChild(newRow);
-            }
-            
-            // 更新统计数据
-            updateStats();
+            document.getElementById('accountModal').style.display = 'block';
         }
         
-        // 更新统计数据
-        function updateStats() {
-            // 获取所有行
-            const rows = document.getElementById('accounts-tbody').getElementsByTagName('tr');
-            
-            // 计算总数和已使用数量
-            const total = rows.length;
-            let used = 0;
-            
-            for (let i = 0; i < rows.length; i++) {
-                const statusCell = rows[i].cells[6].querySelector('.status');
-                if (statusCell.getAttribute('data-status') === '1') {
-                    used++;
-                }
-            }
-            
-            // 更新统计卡片
-            document.getElementById('total-accounts').textContent = total;
-            document.getElementById('used-accounts').textContent = used;
-            document.getElementById('available-accounts').textContent = total - used;
+        // 关闭弹窗
+        function closeModal() {
+            document.getElementById('accountModal').style.display = 'none';
         }
         
-        // 复制文本
+        // 点击弹窗外部关闭弹窗
+        window.onclick = function(event) {
+            const modal = document.getElementById('accountModal');
+            if (event.target === modal) {
+                modal.style.display = 'none';
+            }
+        };
+        
+        // 复制文本函数
         function copyText(text, element) {
-            // 使用现代Clipboard API
-            if (navigator.clipboard && window.isSecureContext) {
-                // 使用现代的Clipboard API
-                navigator.clipboard.writeText(text)
-                    .then(() => {
-                        showCopiedEffect();
-                    })
-                    .catch(err => {
-                        console.error('复制失败: ', err);
-                        fallbackCopy();
-                    });
-            } else {
-                // 回退到传统方法
-                fallbackCopy();
-            }
-            
-            // 传统复制方法
-            function fallbackCopy() {
-                // 创建文本区域而不是输入框，以保留换行符
-                const textArea = document.createElement('textarea');
-                textArea.value = text;
-                textArea.style.position = 'fixed';  // 避免页面滚动
-                document.body.appendChild(textArea);
-                textArea.focus();
-                textArea.select();
-                
-                try {
-                    const successful = document.execCommand('copy');
-                    if (successful) {
-                        showCopiedEffect();
-                    } else {
-                        console.error('复制命令不可用');
-                    }
-                } catch (err) {
-                    console.error('复制出错: ', err);
+            navigator.clipboard.writeText(text).then(() => {
+                if (element) {
+                    element.textContent = '已复制';
+                    setTimeout(() => {
+                        if (element.classList.contains('copy-btn')) {
+                            element.textContent = '复制';
+                        } else {
+                            element.classList.remove('copied');
+                        }
+                    }, 1000);
                 }
-                
-                document.body.removeChild(textArea);
-            }
-            
-            // 显示复制成功效果
-            function showCopiedEffect() {
-                // 显示复制成功效果
-                element.classList.add('copied');
-                setTimeout(() => {
-                    element.classList.remove('copied');
-                }, 1500);
-                
-                showNotification('已复制到剪贴板', 'success');
-            }
+                showToast('复制成功', 'success');
+            }).catch(err => {
+                showToast('复制失败: ' + err, 'error');
+            });
         }
         
-        // 复制完整账号信息
-        function copyInfo(id) {
-            const row = document.querySelector(`tr[data-id="${id}"]`);
-            if (!row) return;
+        // 复制全部账号信息
+        function copyAllInfo() {
+            const email = document.getElementById('modal-email').textContent;
+            const password = document.getElementById('modal-password').textContent;
+            const name = document.getElementById('modal-name').textContent;
+            const expire = document.getElementById('modal-expire').textContent;
             
-            const email = row.cells[1].innerText;
-            const password = row.cells[2].innerText;
+            const fullInfo = `邮箱: ${email}\n密码: ${password}\n姓名: ${name}\n过期时间: ${expire}`;
             
-            // 使用\r\n作为换行符以确保在所有平台上正确显示
-            const text = "账号信息:\r\n邮箱: " + email + "\r\n密码: " + password;
-            
-            copyText(text, row.cells[7].querySelector('.btn'));
+            copyText(fullInfo);
+        }
+        
+        // 复制表格中的账号信息
+        function copyInfo(accountId) {
+            const row = document.querySelector(`tr[data-id="${accountId}"]`);
+            if (row) {
+                const email = row.querySelector('td:nth-child(2) .copyable').textContent;
+                const password = row.querySelector('td:nth-child(3) .copyable').textContent;
+                const name = row.querySelector('td:nth-child(4)').textContent;
+                const expireTime = row.querySelector('td:nth-child(6)').textContent;
+                
+                const account = {
+                    email: email,
+                    password: password,
+                    first_name: name.split(' ')[0],
+                    last_name: name.split(' ')[1] || '',
+                    expire_time_fmt: expireTime
+                };
+                
+                showAccountModal(account);
+            }
         }
         
         // 切换账号状态
@@ -520,11 +624,11 @@
                     // 更新统计数据
                     updateStats();
                     
-                    showNotification('账号状态已更新', 'success');
+                    showToast('账号状态已更新', 'success');
                 } else {
                     // 恢复原始文本
                     element.innerText = originalText;
-                    showNotification(data.message || '更新状态失败', 'error');
+                    showToast(data.message || '更新状态失败', 'error');
                 }
             })
             .catch(error => {
@@ -532,8 +636,59 @@
                 element.classList.remove('btn-loading');
                 element.innerText = originalText;
                 
-                showNotification('请求失败: ' + error.message, 'error');
+                showToast('请求失败: ' + error, 'error');
             });
+        }
+        
+        // 显示吐司提示
+        function showToast(message, type) {
+            const toastContainer = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast toast-${type}`;
+            toast.textContent = message;
+            
+            toastContainer.appendChild(toast);
+            
+            // 动画效果
+            setTimeout(() => {
+                toast.style.opacity = '1';
+            }, 10);
+            
+            // 自动关闭
+            setTimeout(() => {
+                toast.style.opacity = '0';
+                setTimeout(() => {
+                    toastContainer.removeChild(toast);
+                }, 300);
+            }, 3000);
+            
+            // 点击关闭
+            toast.addEventListener('click', () => {
+                toast.style.opacity = '0';
+                setTimeout(() => {
+                    toastContainer.removeChild(toast);
+                }, 300);
+            });
+        }
+        
+        // 更新统计数据
+        function updateStats() {
+            // 获取所有行
+            const rows = document.getElementById('accounts-tbody').getElementsByTagName('tr');
+            
+            // 计算总数和已使用数量
+            let used = 0;
+            
+            for (let i = 0; i < rows.length; i++) {
+                const statusCell = rows[i].cells[6].querySelector('.status');
+                if (statusCell.getAttribute('data-status') === '1') {
+                    used++;
+                }
+            }
+            
+            // 更新统计卡片
+            document.getElementById('used-accounts').textContent = used;
+            document.getElementById('available-accounts').textContent = {{ total_accounts }} - used;
         }
     </script>
 </body>

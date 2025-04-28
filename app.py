@@ -12,6 +12,9 @@ import register as account_register
 # 初始化 Flask 应用
 app = Flask(__name__)
 
+# 添加内置函数到Jinja2环境
+app.jinja_env.globals.update(max=max, min=min)
+
 # 从环境变量获取数据库配置
 DB_HOST = os.environ.get('DB_HOST', 'localhost')
 DB_PORT = os.environ.get('DB_PORT', 3306)
@@ -216,8 +219,25 @@ def update_account_status(account_id):
 # 前端页面 - 查看账号列表
 @app.route('/', methods=['GET'])
 def index():
-    accounts = Account.query.all()
-    return render_template('index.html', accounts=[account.to_dict() for account in accounts], now=datetime.now())
+    page = request.args.get('page', 1, type=int)
+    per_page = request.args.get('per_page', 10, type=int)
+    
+    # 计算总页数
+    total_accounts = Account.query.count()
+    total_pages = (total_accounts + per_page - 1) // per_page
+    
+    # 获取当前页的账号数据，按照create_time倒序排列
+    accounts = Account.query.order_by(Account.create_time.desc()).paginate(page=page, per_page=per_page, error_out=False)
+    
+    return render_template(
+        'index.html', 
+        accounts=[account.to_dict() for account in accounts.items], 
+        now=datetime.now(),
+        current_page=page,
+        total_pages=total_pages,
+        per_page=per_page,
+        total_accounts=total_accounts
+    )
 
 # 健康检查
 @app.route('/health', methods=['GET'])
