@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cursor 账号管理 - 登录</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .login-container {
+            background-color: #fff;
+            padding: 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            width: 350px;
+            max-width: 90%;
+        }
+        h1 {
+            color: #2c3e50;
+            margin-top: 0;
+            margin-bottom: 25px;
+            text-align: center;
+            font-size: 1.8em;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        .tab {
+            flex: 1;
+            text-align: center;
+            padding: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            color: #7f8c8d;
+        }
+        .tab.active {
+            color: #3498db;
+            border-bottom: 2px solid #3498db;
+        }
+        .form-group {
+            margin-bottom: 20px;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        input {
+            width: 100%;
+            padding: 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+            font-size: 16px;
+        }
+        input:focus {
+            border-color: #3498db;
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 12px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s;
+        }
+        .btn:hover {
+            background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .error-message {
+            color: #e74c3c;
+            margin-top: 20px;
+            text-align: center;
+            display: none;
+        }
+        .form-toggle {
+            display: none;
+        }
+        .form-toggle.active {
+            display: block;
+        }
+        .info-text {
+            text-align: center;
+            margin-top: 20px;
+            color: #7f8c8d;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <h1>Cursor 账号管理系统</h1>
+        
+        <div class="tabs">
+            <div class="tab active" id="login-tab" onclick="switchTab('login')">登录</div>
+            <div class="tab" id="register-tab" onclick="switchTab('register')">注册</div>
+        </div>
+        
+        <div id="login-form" class="form-toggle active">
+            <div class="form-group">
+                <label for="login-username">用户名</label>
+                <input type="text" id="login-username" placeholder="请输入用户名">
+            </div>
+            <div class="form-group">
+                <label for="login-password">密码</label>
+                <input type="password" id="login-password" placeholder="请输入密码">
+            </div>
+            <button class="btn" onclick="login()">登录</button>
+            <div class="error-message" id="login-error"></div>
+        </div>
+        
+        <div id="register-form" class="form-toggle">
+            <div class="form-group">
+                <label for="register-username">用户名</label>
+                <input type="text" id="register-username" placeholder="请输入用户名">
+            </div>
+            <div class="form-group">
+                <label for="register-password">密码</label>
+                <input type="password" id="register-password" placeholder="请输入密码">
+            </div>
+            <div class="form-group">
+                <label for="register-email">邮箱 (可选)</label>
+                <input type="email" id="register-email" placeholder="请输入邮箱">
+            </div>
+            <button class="btn" onclick="register()">注册</button>
+            <div class="error-message" id="register-error"></div>
+        </div>
+        
+        <div class="info-text">
+            注册成功后，您可以通过点击"获取账号"按钮手动创建Cursor账号
+        </div>
+    </div>
+
+    <script>
+        // 切换登录/注册表单
+        function switchTab(tab) {
+            if (tab === 'login') {
+                document.getElementById('login-tab').classList.add('active');
+                document.getElementById('register-tab').classList.remove('active');
+                document.getElementById('login-form').classList.add('active');
+                document.getElementById('register-form').classList.remove('active');
+            } else {
+                document.getElementById('login-tab').classList.remove('active');
+                document.getElementById('register-tab').classList.add('active');
+                document.getElementById('login-form').classList.remove('active');
+                document.getElementById('register-form').classList.add('active');
+            }
+            
+            // 清除错误消息
+            document.getElementById('login-error').style.display = 'none';
+            document.getElementById('register-error').style.display = 'none';
+        }
+        
+        // 登录
+        function login() {
+            const username = document.getElementById('login-username').value;
+            const password = document.getElementById('login-password').value;
+            
+            if (!username || !password) {
+                showError('login-error', '请填写用户名和密码');
+                return;
+            }
+            
+            // 发送登录请求
+            fetch('/api/login', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    username: username,
+                    password: password
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // 保存token到cookie
+                    document.cookie = `token=${data.token}; path=/; max-age=${30*24*60*60}`;
+                    // 跳转到首页
+                    window.location.href = '/';
+                } else {
+                    showError('login-error', data.message || '登录失败');
+                }
+            })
+            .catch(error => {
+                showError('login-error', '登录请求失败: ' + error);
+            });
+        }
+        
+        // 注册
+        function register() {
+            const username = document.getElementById('register-username').value;
+            const password = document.getElementById('register-password').value;
+            const email = document.getElementById('register-email').value;
+            
+            if (!username || !password) {
+                showError('register-error', '请填写用户名和密码');
+                return;
+            }
+            
+            // 发送注册请求
+            fetch('/api/register', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    username: username,
+                    password: password,
+                    email: email || undefined
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    // 保存token到cookie
+                    document.cookie = `token=${data.token}; path=/; max-age=${30*24*60*60}`;
+                    // 跳转到首页
+                    window.location.href = '/';
+                } else {
+                    showError('register-error', data.message || '注册失败');
+                }
+            })
+            .catch(error => {
+                showError('register-error', '注册请求失败: ' + error);
+            });
+        }
+        
+        // 显示错误消息
+        function showError(elementId, message) {
+            const element = document.getElementById(elementId);
+            element.textContent = message;
+            element.style.display = 'block';
+        }
+        
+        // 回车键提交
+        document.getElementById('login-password').addEventListener('keyup', function(event) {
+            if (event.key === 'Enter') {
+                login();
+            }
+        });
+        
+        document.getElementById('register-password').addEventListener('keyup', function(event) {
+            if (event.key === 'Enter') {
+                register();
+            }
+        });
+    </script>
+</body>
+</html> 

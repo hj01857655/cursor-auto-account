@@ -94,6 +94,24 @@
         .btn-loading {
             opacity: 0.7;
             cursor: not-allowed;
+            position: relative;
+            padding-left: 35px;
+        }
+        .btn-loading::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 15px;
+            width: 16px;
+            height: 16px;
+            margin-top: -8px;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-top-color: white;
+            border-radius: 50%;
+            animation: spinner 0.8s linear infinite;
+        }
+        @keyframes spinner {
+            to {transform: rotate(360deg);}
         }
         .stats {
             margin-bottom: 30px;
@@ -428,11 +446,45 @@
                 transform: translateY(0);
             }
         }
+        .user-info {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 10px 15px;
+            background-color: #f8f9fa;
+            border-radius: 6px;
+        }
+        .user-greeting {
+            font-size: 1.1em;
+            color: #2c3e50;
+        }
+        .username {
+            font-weight: bold;
+            color: #3498db;
+        }
+        .btn-logout {
+            padding: 6px 12px;
+            background-color: #e74c3c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .btn-logout:hover {
+            background-color: #c0392b;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>Cursor 账号管理系统</h1>
+        
+        <div class="user-info">
+            <div class="user-greeting">您好，<span class="username">{{ user.username }}</span></div>
+            <button class="btn btn-sm btn-logout" onclick="logout()">退出登录</button>
+        </div>
         
         <div class="stats">
             <div class="stat-card">
@@ -451,7 +503,7 @@
         
         <div class="actions">
             <h2>账号列表</h2>
-            <button id="get-account-btn" class="btn" onclick="getAccount()">获取账号</button>
+            <button id="get-account-btn" class="btn" onclick="getAccount()">获取新账号</button>
         </div>
         
         <table class="account-table">
@@ -619,7 +671,7 @@
             
             // 添加加载状态
             button.classList.add('btn-loading');
-            button.innerHTML = '<span class="spinner"></span>获取中...';
+            button.textContent = '创建中...';
             
             // 发起AJAX请求
             fetch('/api/account')
@@ -627,21 +679,29 @@
                 .then(data => {
                     // 恢复按钮状态
                     button.classList.remove('btn-loading');
-                    button.textContent = '获取账号';
+                    button.textContent = '获取新账号';
                     
                     if (data.status === 'success') {
+                        // 显示成功消息
+                        showToast('账号创建成功', 'success');
+                        
+                        // 显示新创建的账号信息
                         showAccountModal(data.account);
-                        showToast('账号获取成功', 'success');
+                        
+                        // 刷新页面以显示新账号
+                        setTimeout(() => {
+                            window.location.reload();
+                        }, 2000);
                     } else {
-                        showToast(data.message || '获取账号失败', 'error');
+                        showToast(data.message || '创建账号失败', 'error');
                     }
                 })
                 .catch(error => {
                     // 恢复按钮状态
                     button.classList.remove('btn-loading');
-                    button.textContent = '获取账号';
+                    button.textContent = '获取新账号';
                     
-                    showToast('获取账号失败: ' + error, 'error');
+                    showToast('创建账号失败: ' + error, 'error');
                 });
         }
         
@@ -849,6 +909,28 @@
             // 更新统计卡片
             document.getElementById('used-accounts').textContent = used;
             document.getElementById('available-accounts').textContent = {{ total_accounts }} - used;
+        }
+        
+        // 退出登录
+        function logout() {
+            // 发送退出登录请求
+            fetch('/api/logout', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                }
+            })
+            .then(response => response.json())
+            .then(data => {
+                // 无论成功与否，都删除cookie并跳转到登录页
+                document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+                window.location.href = '/login';
+            })
+            .catch(error => {
+                // 出错也删除cookie并跳转到登录页
+                document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
+                window.location.href = '/login';
+            });
         }
     </script>
 </body>
