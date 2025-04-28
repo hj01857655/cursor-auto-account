@@ -8,34 +8,47 @@
         body {
             font-family: 'Arial', sans-serif;
             margin: 0;
-            padding: 20px;
+            padding: 10px;
             background-color: #f5f5f5;
             color: #333;
         }
         .container {
-            max-width: 1200px;
+            max-width: 95%;
             margin: 0 auto;
             background-color: #fff;
-            padding: 20px;
+            padding: 20px 30px;
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
         }
         h1 {
             color: #2c3e50;
-            margin-bottom: 20px;
+            margin-bottom: 25px;
             border-bottom: 2px solid #eee;
-            padding-bottom: 10px;
+            padding-bottom: 15px;
         }
         .account-table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
+            table-layout: fixed;
         }
         .account-table th, .account-table td {
-            padding: 12px 15px;
+            padding: 10px 15px;
             text-align: left;
             border-bottom: 1px solid #ddd;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
+        /* 设置各列宽度 */
+        .account-table th:nth-child(1), .account-table td:nth-child(1) { width: 4%; } /* ID */
+        .account-table th:nth-child(2), .account-table td:nth-child(2) { width: 28%; } /* 邮箱 */
+        .account-table th:nth-child(3), .account-table td:nth-child(3) { width: 18%; } /* 密码 */
+        .account-table th:nth-child(4), .account-table td:nth-child(4) { width: 10%; } /* 姓名 */
+        .account-table th:nth-child(5), .account-table td:nth-child(5) { width: 10%; } /* 创建时间 */
+        .account-table th:nth-child(6), .account-table td:nth-child(6) { width: 10%; } /* 过期时间 */
+        .account-table th:nth-child(7), .account-table td:nth-child(7) { width: 8%; } /* 状态 */
+        .account-table th:nth-child(8), .account-table td:nth-child(8) { width: 12%; } /* 操作 */
         .account-table th {
             background-color: #f8f9fa;
             font-weight: bold;
@@ -59,7 +72,8 @@
             color: white;
         }
         .actions {
-            margin-top: 20px;
+            margin-top: 25px;
+            margin-bottom: 20px;
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -82,24 +96,29 @@
             cursor: not-allowed;
         }
         .stats {
-            margin-bottom: 20px;
+            margin-bottom: 30px;
             display: flex;
-            gap: 20px;
+            gap: 25px;
         }
         .stat-card {
             flex: 1;
             background-color: #fff;
-            padding: 15px;
+            padding: 18px;
             border-radius: 8px;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .stat-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
         }
         .stat-title {
-            font-size: 0.9em;
+            font-size: 1em;
             color: #7f8c8d;
-            margin-bottom: 5px;
+            margin-bottom: 8px;
         }
         .stat-value {
-            font-size: 1.5em;
+            font-size: 1.8em;
             font-weight: bold;
             color: #2c3e50;
         }
@@ -144,20 +163,23 @@
         }
         .copyable {
             cursor: pointer;
-            padding: 2px 4px;
-            background-color: #f8f9fa;
-            border-radius: 3px;
             position: relative;
+            display: inline-block;
+            transition: color 0.2s;
+            width: 100%;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
         }
         .copyable:hover {
-            background-color: #e9ecef;
+            color: #3498db;
         }
         .copyable::after {
             content: "点击复制";
             position: absolute;
-            bottom: 100%;
-            left: 50%;
-            transform: translateX(-50%);
+            bottom: 125%;
+            right: 0;
+            transform: none;
             background-color: #333;
             color: white;
             padding: 4px 8px;
@@ -166,13 +188,19 @@
             opacity: 0;
             pointer-events: none;
             transition: opacity 0.2s;
+            white-space: nowrap;
+            z-index: 10;
         }
         .copyable:hover::after {
             opacity: 0.9;
         }
-        .copied::after {
-            content: "";
-            background-color: #2ecc71;
+        .copyable.copied {
+            color: #2ecc71;
+        }
+        .copyable.copied::after {
+            content: "已复制!";
+            background-color: #28a745;
+            opacity: 0.9;
         }
         .status-toggle {
             cursor: pointer;
@@ -224,22 +252,33 @@
         }
         .modal-content {
             background-color: #fff;
-            margin: 10% auto;
-            padding: 20px;
-            border-radius: 8px;
-            max-width: 500px;
-            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+            margin: 8% auto;
+            padding: 25px;
+            border-radius: 10px;
+            max-width: 550px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+            animation: modalFadeIn 0.3s ease-out;
+        }
+        @keyframes modalFadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
         .modal-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
-            margin-bottom: 15px;
+            padding-bottom: 15px;
+            margin-bottom: 20px;
         }
         .modal-title {
-            font-size: 1.2em;
+            font-size: 1.3em;
             color: #2c3e50;
             font-weight: bold;
         }
@@ -252,43 +291,142 @@
             color: #333;
         }
         .account-info {
-            margin-bottom: 15px;
+            margin-bottom: 20px;
         }
         .info-row {
-            margin-bottom: 10px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
         }
         .info-label {
             font-weight: bold;
-            margin-right: 10px;
+            margin-right: 15px;
+            min-width: 80px;
         }
         .info-value {
             word-break: break-all;
+            display: inline;
         }
         .copy-btn {
             display: inline-block;
-            padding: 3px 8px;
+            padding: 2px 5px;
             background-color: #f8f9fa;
             border: 1px solid #ddd;
             border-radius: 3px;
             cursor: pointer;
-            font-size: 0.8em;
+            font-size: 0.9em;
             margin-left: 5px;
+            transition: all 0.2s;
+            position: relative;
         }
         .copy-btn:hover {
             background-color: #e9ecef;
         }
+        .copy-btn::after {
+            content: "复制成功";
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #28a745;
+            color: white;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            white-space: nowrap;
+            z-index: 10;
+        }
+        .copy-btn.copied {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+        .copy-btn.copied::after {
+            opacity: 0.9;
+        }
         .copy-all-btn {
             width: 100%;
             margin-top: 15px;
-            padding: 10px;
+            padding: 12px;
             background-color: #3498db;
             color: white;
             border: none;
             border-radius: 4px;
             cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1em;
+            font-weight: bold;
+            position: relative;
         }
         .copy-all-btn:hover {
             background-color: #2980b9;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+        .copy-all-btn::after {
+            content: "已复制全部信息";
+            position: absolute;
+            bottom: 120%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #28a745;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.9em;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+            white-space: nowrap;
+            z-index: 10;
+        }
+        .copy-all-btn.copied {
+            background-color: #2ecc71;
+        }
+        .copy-all-btn.copied::after {
+            opacity: 0.9;
+        }
+        /* 表格单元格内容溢出处理 */
+        .cell-content {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            position: relative;
+            width: 100%;
+            display: block;
+        }
+        
+        /* 工具提示样式增强 */
+        .tooltip:hover::before {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 125%;
+            left: 0;
+            background-color: #2c3e50;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 4px;
+            white-space: nowrap;
+            z-index: 20;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+            font-size: 0.9em;
+            max-width: 400px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            animation: fadeIn 0.2s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
     </style>
 </head>
@@ -335,8 +473,16 @@
                 {% set is_expired = current_timestamp > account.expire_time %}
                 <tr{% if is_expired %} class="expired"{% endif %} data-id="{{ account.id }}">
                     <td>{{ account.id }}</td>
-                    <td><span class="copyable" onclick="copyText('{{ account.email }}', this)">{{ account.email }}</span></td>
-                    <td><span class="copyable" onclick="copyText('{{ account.password }}', this)">{{ account.password }}</span></td>
+                    <td>
+                        <div class="tooltip" data-tooltip="{{ account.email }}">
+                            <span class="copyable" onclick="copyText('{{ account.email }}', this)">{{ account.email }}</span>
+                        </div>
+                    </td>
+                    <td>
+                        <div class="tooltip" data-tooltip="{{ account.password }}">
+                            <span class="copyable" onclick="copyText('{{ account.password }}', this)">{{ account.password }}</span>
+                        </div>
+                    </td>
                     <td>{{ account.first_name }} {{ account.last_name }}</td>
                     <td>{{ account.create_time|timestamp_to_date }}</td>
                     <td>{{ account.expire_time_fmt }}</td>
@@ -526,14 +672,12 @@
         function copyText(text, element) {
             navigator.clipboard.writeText(text).then(() => {
                 if (element) {
-                    element.textContent = '已复制';
+                    // 添加临时复制成功效果，不改变原文本
+                    element.classList.add('copied');
+                    
                     setTimeout(() => {
-                        if (element.classList.contains('copy-btn')) {
-                            element.textContent = '复制';
-                        } else {
-                            element.classList.remove('copied');
-                        }
-                    }, 1000);
+                        element.classList.remove('copied');
+                    }, 1500);
                 }
                 showToast('复制成功', 'success');
             }).catch(err => {
@@ -550,15 +694,31 @@
             
             const fullInfo = `邮箱: ${email}\n密码: ${password}\n姓名: ${name}\n过期时间: ${expire}`;
             
-            copyText(fullInfo);
+            const button = document.querySelector('.copy-all-btn');
+            
+            navigator.clipboard.writeText(fullInfo).then(() => {
+                button.classList.add('copied');
+                
+                setTimeout(() => {
+                    button.classList.remove('copied');
+                }, 1500);
+                
+                showToast('复制成功', 'success');
+            }).catch(err => {
+                showToast('复制失败: ' + err, 'error');
+            });
         }
         
         // 复制表格中的账号信息
         function copyInfo(accountId) {
             const row = document.querySelector(`tr[data-id="${accountId}"]`);
             if (row) {
-                const email = row.querySelector('td:nth-child(2) .copyable').textContent;
-                const password = row.querySelector('td:nth-child(3) .copyable').textContent;
+                // 获取完整内容，而不是截断的文本
+                const emailTooltip = row.querySelector('td:nth-child(2) .tooltip');
+                const passwordTooltip = row.querySelector('td:nth-child(3) .tooltip');
+                
+                const email = emailTooltip.getAttribute('data-tooltip');
+                const password = passwordTooltip.getAttribute('data-tooltip');
                 const name = row.querySelector('td:nth-child(4)').textContent;
                 const expireTime = row.querySelector('td:nth-child(6)').textContent;
                 
