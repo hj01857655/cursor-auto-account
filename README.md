@@ -1,6 +1,14 @@
 # Cursor 账号管理系统
 
+本项目是站在巨人的肩膀上开发。 [源项目地址](https://github.com/chengazhen/cursor-auto-free) [参考项目](https://github.com/yeongpin/cursor-free-vip)
+
 这是一个用于管理 Cursor 账号的 Web 服务，支持自动注册、存储账号信息、查看和修改账号状态。
+
+[预览站点](https://cursor-account.zoowayss.top)
+
+资源有限，请勿滥用账号
+
+![img.png](./.assets/image.png)
 
 ## 功能特点
 
@@ -36,28 +44,6 @@ docker-compose up -d
    - 网页界面: http://localhost:8080
    - API接口: http://localhost:8080/api/account
 
-### 手动部署
-
-1. 安装依赖
-```bash
-pip install -r requirements.txt
-```
-
-2. 修改数据库配置（如果需要）
-```python
-# 在 app.py 中修改以下配置
-DB_HOST = '47.109.39.201'
-DB_PORT = 3306
-DB_USER = 'root'
-DB_PASSWORD = 'f4N:1!GRbb]UtdGeP:rP'
-DB_NAME = 'cursor_accounts'
-```
-
-3. 运行服务
-```bash
-python app.py
-```
-
 ## API 文档
 
 ### 获取账号
@@ -85,21 +71,6 @@ GET /api/account
 }
 ```
 
-### 添加账号
-
-```
-POST /api/account
-Content-Type: application/json
-
-{
-  "email": "example@zoowayss.top",
-  "password": "password123",
-  "first_name": "John",
-  "last_name": "Doe",
-  "is_used": 0
-}
-```
-
 ### 修改账号状态
 
 ```
@@ -113,18 +84,22 @@ Content-Type: application/json
 
 ## 部署注意事项
 
-1. **安全性**：
-   - 确保数据库凭据安全
-   - 配置防火墙限制数据库端口访问
-   - 使用 HTTPS 保护 Web 服务
-
-2. **资源要求**：
-   - Chrome 浏览器（用于账号注册）
+1. **环境要求**:
+   - 需要 Chrome 浏览器（用于自动注册账号）
    - MySQL 数据库
-   - 至少 1GB 内存
+   - Docker 和 Docker Compose（推荐部署方式）
 
-3. **数据备份**：
-   - 定期备份 MySQL 数据
+2. **数据库配置**:
+   - 默认使用环境变量配置数据库连接
+   - 可在 docker-compose.yml 中修改数据库配置
+
+## 免责声明
+
+1. 本项目仅供学习和技术研究使用，不得用于商业目的
+2. 使用本项目产生的任何法律责任由使用者自行承担
+3. 本项目不保证所创建账号的长期可用性，Cursor官方政策变更可能导致功能失效
+4. 请遵守Cursor的服务条款，合理使用生成的账号
+5. 项目维护者不对使用本工具导致的任何问题负责
 
 ## 许可证
 
