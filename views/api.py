@@ -1,7 +1,9 @@
 import logging
 import time
 import traceback
-from flask import Blueprint, jsonify, request
+import threading
+from functools import wraps
+from flask import Blueprint, jsonify, request, current_app
 from models import db, User, Account
 from auth import token_required, admin_required, generate_token
 from account_service import create_account_for_user
@@ -12,6 +14,33 @@ api_bp = Blueprint('api', __name__, url_prefix='/api')
 # 设置日志
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
+
+# 创建一个信号量用于限制并发请求
+account_semaphore = threading.Semaphore(3)
+
+# 限流装饰器
+def limit_concurrency(semaphore):
+    def decorator(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            # 尝试获取信号量
+            acquired = semaphore.acquire(blocking=False)
+            if not acquired:
+                # 如果没有获取到信号量，返回响应码 429 (Too Many Requests)
+                logger.warning("并发请求数超过限制，拒绝处理请求")
+                return jsonify({
+                    'status': 'error',
+                    'message': '服务器繁忙，请稍后再试'
+                }), 429
+            
+            try:
+                # 执行原函数
+                return f(*args, **kwargs)
+            finally:
+                # 无论成功与否，释放信号量
+                semaphore.release()
+        return decorated_function
+    return decorator
 
 # 用户注册
 @api_bp.route('/register', methods=['POST'])
@@ -119,15 +148,17 @@ def logout(current_user):
 # 获取一个可用账号 (已登录用户)
 @api_bp.route('/account', methods=['GET'])
 @token_required
+@limit_concurrency(account_semaphore)
 def get_account(current_user):
     try:
-        
+        logger.info(f"用户 {current_user.id} 请求获取账号")
         result = create_account_for_user(current_user)
         if result.get('status') == 'success':
             return jsonify(result)
         else:
             return jsonify(result), 500
     except Exception as e:
+        logger.error(f"获取账号失败: {str(e)}")
         return jsonify({
             'status': 'error',
             'message': str(e)
