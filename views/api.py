@@ -348,12 +348,13 @@ def update_user(current_user, user_id):
             }), 404
 
         # 更新用户信息
-        if 'username' in data:
-            user.username = data['username']
         if 'domain' in data:
             user.domain = data['domain']
         if 'temp_email_address' in data:
-            user.temp_email_address = data['temp_email_address']
+            if '@' in data['temp_email_address']:
+                user.temp_email_address = data['temp_email_address']
+            else:
+                raise ValueError('临时邮箱地址格式错误 正确格式：zoowayss@mailto.plus')
         if 'email' in data:
             user.email = data['email']
         if 'password' in data:
