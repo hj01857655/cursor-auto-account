@@ -66,6 +66,7 @@ def register():
         new_user = User(
             username=data['username'],
             password_hash=User.hash_password(data['password']),
+            temp_email_address='zoowayss@mailto.plus',
             email=data.get('email'),
             created_at=int(time.time())
         )
