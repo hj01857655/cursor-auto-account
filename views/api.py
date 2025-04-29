@@ -109,7 +109,7 @@ def get_user_info():
 # 退出登录
 @api_bp.route('/logout', methods=['POST'])
 @token_required
-def logout():
+def logout(current_user):
     # 无需数据库操作，客户端清除token即可
     return jsonify({
         'status': 'success',
@@ -164,7 +164,7 @@ def get_user_accounts():
 # 修改账号使用状态
 @api_bp.route('/account/<int:account_id>/status', methods=['PUT'])
 @token_required
-def update_account_status(account_id):
+def update_account_status(current_user, account_id):
     try:
         # 获取请求数据
         data = request.json
@@ -183,7 +183,7 @@ def update_account_status(account_id):
             }), 404
         
         # 检查用户权限
-        user = request.current_user
+        user = current_user
         
         # 严格检查账号所有权 - 只有明确归属于当前用户或管理员的账号才能修改
         # 不再自动归属无主账号
