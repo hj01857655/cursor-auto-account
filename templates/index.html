@@ -25,13 +25,22 @@
             background: linear-gradient(135deg, #4b6cb7, #182848);
             color: #ffffff;
             padding: 15px 25px;
-            margin-bottom: 20px;
+            margin-bottom: 0;
             border-radius: 8px;
             text-align: center;
             font-weight: 500;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            position: relative;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+            position: fixed;
+            top: 80px;
+            right: 20px;
+            max-width: 350px;
             overflow: hidden;
+            z-index: 1000;
+            transition: all 0.3s ease;
+        }
+        .announcement:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
         }
         .announcement::before {
             content: "";
@@ -47,16 +56,34 @@
         .announcement p {
             margin: 8px 0;
             line-height: 1.5;
+            font-size: 0.9em;
+            text-align: left;
         }
         .announcement p:first-child {
-            font-size: 1.2em;
+            font-size: 1.1em;
             font-weight: 700;
-            margin-bottom: 12px;
+            margin-bottom: 10px;
+            text-align: center;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            padding-bottom: 8px;
         }
         .announcement-icon {
             display: inline-block;
             margin-right: 8px;
             animation: pulse 2s infinite;
+        }
+        .announcement-close {
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            color: rgba(255, 255, 255, 0.8);
+            font-size: 1em;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .announcement-close:hover {
+            color: #ffffff;
+            transform: scale(1.1);
         }
         @keyframes pulse {
             0% { opacity: 0.6; transform: scale(1); }
@@ -583,6 +610,113 @@
         .btn-logout:hover {
             background-color: #c0392b;
         }
+        /* 用户信息下拉样式 */
+        .user-dropdown {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 999;
+        }
+        .user-dropdown-toggle {
+            display: flex;
+            align-items: center;
+            background-color: #fff;
+            border: none;
+            border-radius: 30px;
+            padding: 8px 16px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            font-size: 1em;
+            color: #2c3e50;
+            transition: all 0.2s;
+        }
+        .user-dropdown-toggle:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            transform: translateY(-2px);
+        }
+        .user-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-color: #3498db;
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 10px;
+            font-weight: bold;
+        }
+        .user-dropdown-content {
+            position: absolute;
+            right: 0;
+            top: 50px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            min-width: 280px;
+            display: none;
+            animation: slideDown 0.3s ease;
+        }
+        @keyframes slideDown {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .user-dropdown-content.show {
+            display: block;
+        }
+        .user-dropdown-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
+        }
+        .user-dropdown-title {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        .user-dropdown-content .info-item {
+            margin-bottom: 15px;
+        }
+        .update-form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        .update-actions {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+        }
+        .update-btn {
+            padding: 8px 15px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            flex: 1;
+        }
+        .update-btn:hover {
+            background-color: #2980b9;
+        }
+        .btn-logout {
+            background-color: #e74c3c;
+            margin-left: 10px;
+        }
+        .btn-logout:hover {
+            background-color: #c0392b;
+        }
     </style>
 </head>
 <body>
@@ -594,34 +728,39 @@
             <p><span class="announcement-icon">⚠️</span>重要通知</p>
             <p>1.当前 zoowayss.top 域名邮箱已经被cursor拉黑，自行配置自己的域名和转发临时邮箱地址</p>
             <p>2.如果401 退出登录或者删除localstorage & cookies</p>
+            <button class="announcement-close" onclick="closeAnnouncement()">&times;</button>
         </div> 
         
-        <div class="user-info">
-            <div class="user-info-header">
-                <div class="user-info-title">用户信息</div>
-                <button class="btn-logout" onclick="logout()">退出登录</button>
-            </div>
-            <div class="user-info-content">
-                <div class="info-item">
-                    <label>用户名</label>
-                    <div class="info-item-value">
-                        <span id="username" class="username">{{ current_user.username }}</span>
-                    </div>
+        <!-- 用户下拉菜单 -->
+        <div class="user-dropdown">
+            <button class="user-dropdown-toggle" onclick="toggleUserDropdown()">
+                <div class="user-avatar">{{ current_user.username[0] | upper }}</div>
+                <span>{{ current_user.username }}</span>
+            </button>
+            <div class="user-dropdown-content" id="userDropdown">
+                <div class="user-dropdown-header">
+                    <div class="user-dropdown-title">用户信息</div>
                 </div>
-                <div class="info-item">
-                    <label>域名</label>
-                    <div class="info-item-value">
+                <form class="update-form" id="updateForm">
+                    <div class="info-item">
+                        <label>用户名</label>
+                        <div class="info-item-value">
+                            <span id="username" class="username">{{ current_user.username }}</span>
+                        </div>
+                    </div>
+                    <div class="info-item">
+                        <label>域名</label>
                         <input type="text" id="domain" value="{{ current_user.domain }}" />
-                        <button class="info-update-btn" onclick="updateUserInfo('domain')">更新</button>
                     </div>
-                </div>
-                <div class="info-item">
-                    <label>临时邮箱</label>
-                    <div class="info-item-value">
+                    <div class="info-item">
+                        <label>临时邮箱</label>
                         <input type="text" id="temp_email_address" value="{{ current_user.temp_email_address }}" />
-                        <button class="info-update-btn" onclick="updateUserInfo('temp_email_address')">更新</button>
                     </div>
-                </div>
+                    <div class="update-actions">
+                        <button type="button" class="update-btn" onclick="updateAllUserInfo()">更新信息</button>
+                        <button type="button" class="update-btn btn-logout" onclick="logout()">退出登录</button>
+                    </div>
+                </form>
             </div>
         </div>
         
@@ -1105,6 +1244,79 @@
                 // 恢复按钮状态
                 button.innerText = originalText;
                 button.disabled = false;
+                
+                showToast('更新失败：' + error, 'error');
+            });
+        }
+
+        // 关闭公告
+        function closeAnnouncement() {
+            const announcement = document.querySelector('.announcement');
+            announcement.style.display = 'none';
+        }
+
+        // 切换用户下拉菜单
+        function toggleUserDropdown() {
+            const dropdown = document.getElementById('userDropdown');
+            dropdown.classList.toggle('show');
+            
+            // 点击其他地方关闭下拉菜单
+            document.addEventListener('click', function(event) {
+                const dropdown = document.getElementById('userDropdown');
+                const toggle = document.querySelector('.user-dropdown-toggle');
+                
+                if (!dropdown.contains(event.target) && !toggle.contains(event.target)) {
+                    dropdown.classList.remove('show');
+                }
+            });
+        }
+
+        // 一次性更新所有用户信息
+        function updateAllUserInfo() {
+            const domain = document.getElementById('domain').value;
+            const tempEmailAddress = document.getElementById('temp_email_address').value;
+            const updateBtn = document.querySelector('.update-btn');
+            const originalText = updateBtn.innerText;
+            
+            // 添加加载效果
+            updateBtn.innerText = '更新中...';
+            updateBtn.disabled = true;
+            
+            // 准备要更新的数据
+            const updateData = {
+                domain: domain,
+                temp_email_address: tempEmailAddress
+            };
+            
+            fetch(`/api/user/{{ current_user.id }}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify(updateData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                // 恢复按钮状态
+                updateBtn.innerText = originalText;
+                updateBtn.disabled = false;
+                
+                if (data.status === 'success') {
+                    showToast(data.message || '更新成功', 'success');
+                    
+                    // 关闭下拉菜单
+                    setTimeout(() => {
+                        document.getElementById('userDropdown').classList.remove('show');
+                    }, 1500);
+                } else {
+                    showToast(data.message || '更新失败', 'error');
+                }
+            })
+            .catch(error => {
+                // 恢复按钮状态
+                updateBtn.innerText = originalText;
+                updateBtn.disabled = false;
                 
                 showToast('更新失败：' + error, 'error');
             });
