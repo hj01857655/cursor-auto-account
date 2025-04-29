@@ -21,8 +21,13 @@ def create_account_for_user(current_user):
         if existing_account:
             return {'status': 'error', 'message': '该邮箱已被使用，请重试'}
         
+        if current_user.temp_email_address:
+            temp_email_address = current_user.temp_email_address
+        else:
+            temp_email_address = 'zoowayss@mailto.plus'
+        
         # 注册账号
-        registration = account_register.Register(first_name, last_name, email, password,current_user.temp_email_address)
+        registration = account_register.Register(first_name, last_name, email, password,temp_email_address)
         success = registration.register()
         
         if not success:

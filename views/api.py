@@ -287,9 +287,7 @@ def health_check():
 def update_user(current_user, user_id):
     try:
         # 记录调试信息
-        logger.info(f"更新用户请求 - 当前用户ID: {current_user.id}, 目标用户ID: {user_id}")
-        logger.info(f"请求头: {request.headers}")
-        logger.info(f"Cookie: {request.cookies}")
+        logger.info(f"更新用户请求 - 当前用户ID: {current_user.id}")
         
         # 检查权限
         if current_user.id != user_id and not current_user.is_admin:
