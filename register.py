@@ -78,7 +78,7 @@ class Register(object):
         
     def register(self):
         print(f"Registering {self.first_name} {self.last_name} with email {self.email} and password {self.password}")
-        self.sign_up_account_by_login(self.tab)
+        self.sign_up_account(self.tab)
         return True
 
     def login(self):
@@ -124,7 +124,7 @@ class Register(object):
         logging.info("Starting account registration")
         logging.info(f"Visiting registration page: {self.sign_up_url}")
         tab.get(self.sign_up_url)
-        email_handler = EmailVerificationHandler(self.email)
+        email_handler = EmailVerificationHandler(self.email,self.temp_email_address)
         time.sleep(5)
         save_screenshot(tab, "registration_page")
         try:
