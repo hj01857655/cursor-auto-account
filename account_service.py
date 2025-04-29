@@ -40,7 +40,7 @@ def create_account_for_user(current_user):
         # 创建账号对象
         account = Account(
             email=email,
-            password=password,
+            password='',
             first_name=first_name,
             last_name=last_name,
             create_time=create_time,
