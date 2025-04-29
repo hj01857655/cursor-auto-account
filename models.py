@@ -17,7 +17,7 @@ class User(db.Model):
     created_at = Column(BigInteger, nullable=False)
     last_login = Column(BigInteger, nullable=True)
     domain = Column(String(255), default='zoowayss.top')
-    temp_email_address = Column(String(255), nullable=True)
+    temp_email_address = Column(String(255), default='',nullable=True)
     
     # 关联用户的账号
     accounts = relationship("Account", back_populates="user")
