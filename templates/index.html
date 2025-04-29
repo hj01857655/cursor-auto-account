@@ -22,20 +22,46 @@
         }
         /* 公告样式 */
         .announcement {
-            background-color: #e74c3c;
-            color: white;
-            padding: 15px 20px;
+            background: linear-gradient(135deg, #4b6cb7, #182848);
+            color: #ffffff;
+            padding: 15px 25px;
             margin-bottom: 20px;
-            border-radius: 5px;
+            border-radius: 8px;
             text-align: center;
-            font-weight: bold;
-            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            position: relative;
+            overflow: hidden;
+        }
+        .announcement::before {
+            content: "";
+            position: absolute;
+            top: -10px;
+            left: -10px;
+            right: -10px;
+            bottom: -10px;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0));
+            filter: blur(5px);
+            z-index: -1;
+        }
+        .announcement p {
+            margin: 8px 0;
+            line-height: 1.5;
+        }
+        .announcement p:first-child {
+            font-size: 1.2em;
+            font-weight: 700;
+            margin-bottom: 12px;
+        }
+        .announcement-icon {
+            display: inline-block;
+            margin-right: 8px;
             animation: pulse 2s infinite;
         }
         @keyframes pulse {
-            0% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0.7); }
-            70% { box-shadow: 0 0 0 10px rgba(231, 76, 60, 0); }
-            100% { box-shadow: 0 0 0 0 rgba(231, 76, 60, 0); }
+            0% { opacity: 0.6; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.1); }
+            100% { opacity: 0.6; transform: scale(1); }
         }
         h1 {
             color: #2c3e50;
@@ -464,21 +490,86 @@
             }
         }
         .user-info {
+            margin-bottom: 20px;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+        .user-info:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+        .user-info-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 20px;
-            padding: 10px 15px;
-            background-color: #f8f9fa;
-            border-radius: 6px;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #eee;
         }
-        .user-greeting {
-            font-size: 1.1em;
+        .user-info-title {
+            font-size: 1.2em;
+            font-weight: bold;
             color: #2c3e50;
         }
-        .username {
-            font-weight: bold;
-            color: #3498db;
+        .user-info-content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+        }
+        .info-item {
+            flex: 1;
+            min-width: 250px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .info-item label {
+            font-size: 0.9em;
+            color: #7f8c8d;
+        }
+        .info-item-value {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+        .info-item input {
+            flex: 1;
+            padding: 8px 12px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1em;
+        }
+        .info-item input:focus {
+            outline: none;
+            border-color: #3498db;
+            box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+        }
+        .info-update-btn {
+            padding: 8px 12px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .info-update-btn:hover {
+            background-color: #2980b9;
+        }
+        .update-success {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 10px 15px;
+            background-color: #2ecc71;
+            color: white;
+            border-radius: 4px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+            z-index: 9999;
+            animation: fadeInOut 3s ease-in-out;
         }
         .btn-logout {
             padding: 6px 12px;
@@ -500,29 +591,37 @@
         
         <!-- 公告区域 -->
         <div class="announcement">
-            <p>⚠️ 重要通知 ⚠️</p>
+            <p><span class="announcement-icon">⚠️</span>重要通知</p>
             <p>当前 zoowayss.top 域名邮箱已经被cursor拉黑，自行配置自己的域名和转发临时邮箱地址</p>
             <p>如果401 退出登录或者删除localstorage & cookies</p>
         </div> 
         
         <div class="user-info">
-            <h3>用户信息</h3>
-            <div class="info-item">
-                <span>用户名：</span>
-                <span id="username">{{ current_user.username }}</span>
+            <div class="user-info-header">
+                <div class="user-info-title">用户信息</div>
+                <button class="btn-logout" onclick="logout()">退出登录</button>
             </div>
-            <div class="info-item">
-                <span>域名：</span>
-                <input type="text" id="domain" value="{{ current_user.domain }}" />
-                <button onclick="updateUserInfo('domain')">更新</button>
-            </div>
-            <div class="info-item">
-                <span>临时邮箱：</span>
-                <input type="text" id="temp_email_address" value="{{ current_user.temp_email_address }}" />
-                <button onclick="updateUserInfo('temp_email_address')">更新</button>
-            </div>
-            <div class="info-item" style="margin-top: 10px;">
-                <button class="btn btn-logout" onclick="logout()">退出登录</button>
+            <div class="user-info-content">
+                <div class="info-item">
+                    <label>用户名</label>
+                    <div class="info-item-value">
+                        <span id="username" class="username">{{ current_user.username }}</span>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <label>域名</label>
+                    <div class="info-item-value">
+                        <input type="text" id="domain" value="{{ current_user.domain }}" />
+                        <button class="info-update-btn" onclick="updateUserInfo('domain')">更新</button>
+                    </div>
+                </div>
+                <div class="info-item">
+                    <label>临时邮箱</label>
+                    <div class="info-item-value">
+                        <input type="text" id="temp_email_address" value="{{ current_user.temp_email_address }}" />
+                        <button class="info-update-btn" onclick="updateUserInfo('temp_email_address')">更新</button>
+                    </div>
+                </div>
             </div>
         </div>
         
@@ -975,6 +1074,13 @@
 
         function updateUserInfo(field) {
             const value = document.getElementById(field).value;
+            const button = document.querySelector(`#${field}`).nextElementSibling;
+            const originalText = button.innerText;
+            
+            // 添加加载效果
+            button.innerText = '更新中...';
+            button.disabled = true;
+            
             fetch(`/api/user/{{ current_user.id }}`, {
                 method: 'PUT',
                 headers: {
@@ -985,10 +1091,22 @@
             })
             .then(response => response.json())
             .then(data => {
-                alert(data.message);
+                // 恢复按钮状态
+                button.innerText = originalText;
+                button.disabled = false;
+                
+                if (data.status === 'success') {
+                    showToast(data.message || '更新成功', 'success');
+                } else {
+                    showToast(data.message || '更新失败', 'error');
+                }
             })
             .catch(error => {
-                alert('更新失败：' + error);
+                // 恢复按钮状态
+                button.innerText = originalText;
+                button.disabled = false;
+                
+                showToast('更新失败：' + error, 'error');
             });
         }
     </script>
