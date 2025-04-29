@@ -1,6 +1,6 @@
 import time
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, BigInteger, ForeignKey
+from sqlalchemy import Column, Integer, String, BigInteger, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 from flask_sqlalchemy import SQLAlchemy
 
@@ -11,11 +11,13 @@ class User(db.Model):
     __tablename__ = 'users'
     
     id = Column(Integer, primary_key=True, autoincrement=True)
-    username = Column(String(50), unique=True, nullable=False)
+    username = Column(String(80), unique=True, nullable=False)
     password_hash = Column(String(128), nullable=False)
     email = Column(String(100), unique=True, nullable=True)
     created_at = Column(BigInteger, nullable=False)
     last_login = Column(BigInteger, nullable=True)
+    domain = Column(String(255), default='zoowayss.top')
+    temp_email_address = Column(String(255), nullable=True)
     
     # 关联用户的账号
     accounts = relationship("Account", back_populates="user")
@@ -26,7 +28,9 @@ class User(db.Model):
             'username': self.username,
             'email': self.email,
             'created_at': self.created_at,
-            'last_login': self.last_login
+            'last_login': self.last_login,
+            'domain': self.domain,
+            'temp_email_address': self.temp_email_address
         }
     
     @staticmethod

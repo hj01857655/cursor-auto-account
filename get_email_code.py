@@ -5,11 +5,10 @@ import requests
 
 
 class EmailVerificationHandler:
-    def __init__(self,account):
-        self.username = 'fuckcursor'
+    def __init__(self, email: str, temp_email_address: str = None):
+        self.email = email
+        self.temp_email_address = temp_email_address
         self.session = requests.Session()
-        self.account = account
-        self.emailExtension = '@mailto.plus'
 
     def get_verification_code(self, max_retries=5, retry_interval=60):
         """
@@ -44,10 +43,11 @@ class EmailVerificationHandler:
     # 手动输入验证码
     def _get_latest_mail_code(self):
         # 获取邮件列表
-        mail_list_url = f"https://tempmail.plus/api/mails?email={self.username}{self.emailExtension}&limit=20&epin={self.account}"
+        mail_list_url = f"https://tempmail.plus/api/mails?email={self.temp_email_address}&limit=20&epin={self.email}"
+        logging.info(f"获取邮件列表: {mail_list_url}")
         mail_list_response = self.session.get(mail_list_url)
         mail_list_data = mail_list_response.json()
-        print(mail_list_data)
+        logging.info(f"邮件列表: {mail_list_data}")
         time.sleep(0.5)
         if not mail_list_data.get("result"):
             return None, None
@@ -58,7 +58,7 @@ class EmailVerificationHandler:
             return None, None
 
         # 获取具体邮件内容
-        mail_detail_url = f"https://tempmail.plus/api/mails/{first_id}?email={self.username}{self.emailExtension}&epin={self.account}"
+        mail_detail_url = f"https://tempmail.plus/api/mails/{first_id}?email={self.temp_email_address}&epin={self.email}"
         mail_detail_response = self.session.get(mail_detail_url)
         mail_detail_data = mail_detail_response.json()
         time.sleep(0.5)
@@ -69,11 +69,20 @@ class EmailVerificationHandler:
         mail_text = mail_detail_data.get("text", "")
         mail_subject = mail_detail_data.get("subject", "")
         logging.info(f"找到邮件主题: {mail_subject}")
-        # 修改正则表达式，确保 6 位数字不紧跟在字母或域名相关符号后面
+        
+        # 尝试匹配连续的6位数字
         code_match = re.search(r"(?<![a-zA-Z@.])\b\d{6}\b", mail_text)
-
-        if code_match:
+        
+        # 如果没有找到连续6位数字，尝试匹配带空格的6位数字
+        if not code_match:
+            # 匹配像 "9 7 7 1 8 2" 这样的格式
+            space_code_match = re.search(r"(\d\s){5}\d", mail_text)
+            if space_code_match:
+                # 删除空格得到验证码
+                return re.sub(r'\s', '', space_code_match.group()), first_id
+        else:
             return code_match.group(), first_id
+        
         return None, None
 
         
@@ -81,9 +90,9 @@ class EmailVerificationHandler:
         # 构造删除请求的URL和数据
         delete_url = "https://tempmail.plus/api/mails/"
         payload = {
-            "email": f"{self.username}{self.emailExtension}",
+            "email": self.temp_email_address,
             "first_id": first_id,
-            "epin": f"{self.account}",
+            "epin": f"{self.email}",
         }
 
         # 最多尝试5次

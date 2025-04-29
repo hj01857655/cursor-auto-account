@@ -4,10 +4,10 @@ import register as account_register
 from models import db, Account
 
 # 为用户创建账号
-def create_account_for_user(user_id):
+def create_account_for_user(current_user):
     try:
         # 生成随机名字和账号信息
-        email_generator = account_register.EmailGenerator()
+        email_generator = account_register.EmailGenerator(domain=current_user.domain)
         account_info = email_generator.get_account_info()
         
         # 从返回的字典中获取信息
@@ -22,7 +22,7 @@ def create_account_for_user(user_id):
             return {'status': 'error', 'message': '该邮箱已被使用，请重试'}
         
         # 注册账号
-        registration = account_register.Register(first_name, last_name, email, password)
+        registration = account_register.Register(first_name, last_name, email, password,current_user.temp_email_address)
         success = registration.register()
         
         if not success:
@@ -40,7 +40,7 @@ def create_account_for_user(user_id):
             last_name=last_name,
             create_time=create_time,
             expire_time=expire_time,
-            user_id=user_id,
+            user_id=current_user.id,
             is_used=0  # 标记为已使用
         )
         

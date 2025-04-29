@@ -117,24 +117,21 @@ def logout():
     })
 
 # 获取一个可用账号 (已登录用户)
-# @api_bp.route('/account', methods=['GET'])
+@api_bp.route('/account', methods=['GET'])
 @token_required
-def get_account():
+def get_account(current_user):
     try:
-        # 获取当前用户
-        user_id = request.current_user.id
         
-        # 创建新账号
-        result = create_account_for_user(user_id)
-        
+        result = create_account_for_user(current_user)
         if result.get('status') == 'success':
             return jsonify(result)
         else:
             return jsonify(result), 500
-    
     except Exception as e:
-        logger.error(f"获取账号失败: {traceback.format_exc()}")
-        return jsonify({'status': 'error', 'message': str(e)}), 500
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500
 
 # 获取用户的所有账号
 @api_bp.route('/accounts', methods=['GET'])
@@ -283,4 +280,67 @@ def admin_get_users():
 @api_bp.route('/health', methods=['GET'])
 def health_check():
     from datetime import datetime
-    return jsonify({'status': 'ok', 'time': datetime.now().strftime('%Y-%m-%d %H:%M:%S')}), 200 
+    return jsonify({'status': 'ok', 'time': datetime.now().strftime('%Y-%m-%d %H:%M:%S')}), 200
+
+@api_bp.route('/user/<int:user_id>', methods=['PUT'])
+@token_required
+def update_user(current_user, user_id):
+    try:
+        # 记录调试信息
+        logger.info(f"更新用户请求 - 当前用户ID: {current_user.id}, 目标用户ID: {user_id}")
+        logger.info(f"请求头: {request.headers}")
+        logger.info(f"Cookie: {request.cookies}")
+        
+        # 检查权限
+        if current_user.id != user_id and not current_user.is_admin:
+            logger.warning(f"权限不足 - 当前用户ID: {current_user.id}, 目标用户ID: {user_id}")
+            return jsonify({
+                'status': 'error',
+                'message': '无权修改其他用户信息'
+            }), 403
+
+        # 获取请求数据
+        data = request.json
+        if not data:
+            logger.warning("缺少更新数据")
+            return jsonify({
+                'status': 'error',
+                'message': '缺少更新数据'
+            }), 400
+
+        # 查找用户
+        user = User.query.get(user_id)
+        if not user:
+            logger.warning(f"用户不存在 - 用户ID: {user_id}")
+            return jsonify({
+                'status': 'error',
+                'message': '用户不存在'
+            }), 404
+
+        # 更新用户信息
+        if 'username' in data:
+            user.username = data['username']
+        if 'domain' in data:
+            user.domain = data['domain']
+        if 'temp_email_address' in data:
+            user.temp_email_address = data['temp_email_address']
+        if 'email' in data:
+            user.email = data['email']
+        if 'password' in data:
+            user.password_hash = User.hash_password(data['password'])
+
+        db.session.commit()
+        logger.info(f"用户信息更新成功 - 用户ID: {user_id}")
+
+        return jsonify({
+            'status': 'success',
+            'message': '用户信息更新成功',
+            'user': user.to_dict()
+        })
+
+    except Exception as e:
+        logger.error(f"更新用户信息失败: {traceback.format_exc()}")
+        return jsonify({
+            'status': 'error',
+            'message': str(e)
+        }), 500 

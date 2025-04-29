@@ -77,7 +77,7 @@ def token_required(f):
         
         # 将用户添加到请求上下文
         request.current_user = current_user
-        return f(*args, **kwargs)
+        return f(current_user, *args, **kwargs)
     
     return decorated
 

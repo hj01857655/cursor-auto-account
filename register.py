@@ -65,24 +65,60 @@ class TurnstileError(Exception):
     pass
 
 class Register(object):
-    def __init__(self, first_name, last_name, email, password):
+    def __init__(self, first_name, last_name, email, password,temp_email_address):
         self.first_name = first_name
         self.last_name = last_name
         self.email = email
         self.password = password
+        self.temp_email_address = temp_email_address
         self.tab= BrowserManager().init_browser(get_user_agent()).latest_tab
         self.sign_up_url = 'https://authenticator.cursor.sh/sign-up'
         self.settings_url = 'https://www.cursor.com/settings'
+        self.login_url = 'https://authenticator.cursor.sh'
         
     def register(self):
         print(f"Registering {self.first_name} {self.last_name} with email {self.email} and password {self.password}")
-        self.tab.get('https://authenticator.cursor.sh/sign-up')
-        self.sign_up_account(self.tab)
+        self.sign_up_account_by_login(self.tab)
         return True
 
     def login(self):
         print(f"Logging in {self.first_name} {self.last_name} with email {self.email} and password {self.password}")
 
+
+    def sign_up_account_by_login(self, tab):
+        self.tab.get(self.login_url)
+        self.tab.ele("@name=email").input(self.email)
+        self.tab.ele("@type=submit").click()
+        time.sleep(random.uniform(2, 3))
+        self.tab.ele("xpath://button[@name='intent' and @value='magic-code']").click()
+        time.sleep(random.uniform(2, 3))
+        handle_turnstile(tab)
+        email_handler = EmailVerificationHandler(self.email,self.temp_email_address)
+        while True:
+            try:
+                if tab.ele("Account Settings"):
+                    logging.info("Registration successful")
+                    break
+                if tab.ele("@data-index=0"):
+                    logging.info("Getting email verification code")
+                    code = email_handler.get_verification_code()
+                    if not code:
+                        logging.error("Verification code could not be obtained")
+                        return False
+
+                    logging.info(f"Verification code received: {code}")
+                    logging.info("Inputting verification code")
+                    i = 0
+                    for digit in code:
+                        tab.ele(f"@data-index={i}").input(digit)
+                        time.sleep(random.uniform(0.1, 0.3))
+                        i += 1
+                    logging.info("Verification code input complete")
+                    break
+            except Exception as e:
+                logging.error(f"Verification code process error: {str(e)}")
+                return False
+        return True
 
     def sign_up_account(self, tab):
         logging.info("Starting account registration")
@@ -289,8 +325,9 @@ def handle_turnstile(tab, max_retries: int = 2, retry_interval: tuple = (1, 2)) 
 class EmailGenerator:
     def __init__(
         self,
+        domain: str = None
     ):
-        self.domain = os.getenv('EMAIL_DOMAIN', 'zoowayss.eu.org')  # 从环境变量读取域名，如果未设置则使用默认值
+        self.domain = domain or os.getenv('EMAIL_DOMAIN', 'zoowayss.eu.org')
         self.names = self.load_names()
         self.default_first_name = self.generate_random_name()
         self.default_last_name = self.generate_random_name()

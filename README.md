@@ -66,6 +66,7 @@ python app.py
 4. 请遵守Cursor的服务条款，合理使用生成的账号
 5. 项目维护者不对使用本工具导致的任何问题负责
 ## Star History
+
 [![Star History Chart](https://api.star-history.com/svg?repos=zoowayss/cursor-auto-account&type=Date)](https://www.star-history.com/#zoowayss/cursor-auto-account&Date)
 ## 许可证
 

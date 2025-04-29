@@ -499,15 +499,33 @@
         <h1>Cursor 账号管理系统</h1>
         
         <!-- 公告区域 -->
+        {# 
         <div class="announcement">
             <p>⚠️ 重要通知 ⚠️</p>
             <p>当前 zoowayss.top 域名邮箱已经被cursor拉黑，暂停服务！</p>
             <p>正在开发用户自定义域名邮箱版本</p>
-        </div>
+        </div> 
+        #}
         
         <div class="user-info">
-            <div class="user-greeting">您好，<span class="username">{{ user.username }}</span></div>
-            <button class="btn btn-sm btn-logout" onclick="logout()">退出登录</button>
+            <h3>用户信息</h3>
+            <div class="info-item">
+                <span>用户名：</span>
+                <span id="username">{{ current_user.username }}</span>
+            </div>
+            <div class="info-item">
+                <span>域名：</span>
+                <input type="text" id="domain" value="{{ current_user.domain }}" />
+                <button onclick="updateUserInfo('domain')">更新</button>
+            </div>
+            <div class="info-item">
+                <span>临时邮箱：</span>
+                <input type="text" id="temp_email_address" value="{{ current_user.temp_email_address }}" />
+                <button onclick="updateUserInfo('temp_email_address')">更新</button>
+            </div>
+            <div class="info-item" style="margin-top: 10px;">
+                <button class="btn btn-logout" onclick="logout()">退出登录</button>
+            </div>
         </div>
         
         <div class="stats">
@@ -954,6 +972,25 @@
                 // 出错也删除cookie并跳转到登录页
                 document.cookie = 'token=; path=/; expires=Thu, 01 Jan 1970 00:00:01 GMT;';
                 window.location.href = '/login';
+            });
+        }
+
+        function updateUserInfo(field) {
+            const value = document.getElementById(field).value;
+            fetch(`/api/user/{{ current_user.id }}`, {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({ [field]: value })
+            })
+            .then(response => response.json())
+            .then(data => {
+                alert(data.message);
+            })
+            .catch(error => {
+                alert('更新失败：' + error);
             });
         }
     </script>

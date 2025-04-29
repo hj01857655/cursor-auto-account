@@ -24,16 +24,13 @@ class BrowserManager:
 
         co.set_pref("credentials_enable_service", False)
         co.set_argument("--hide-crash-restore-bubble")
+        co.set_argument("--remote-debugging-port=9222")
         co.set_argument("--no-sandbox")
+        co.set_argument("--disable-gpu")
         if user_agent:
             co.set_user_agent(user_agent)
 
         co.headless()  # 生产环境使用无头模式
-
-        # Mac 系统特殊处理
-        if sys.platform == "darwin":
-            co.set_argument("--no-sandbox")
-            co.set_argument("--disable-gpu")
 
         return co
 
