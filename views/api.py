@@ -117,7 +117,7 @@ def logout():
     })
 
 # 获取一个可用账号 (已登录用户)
-@api_bp.route('/account', methods=['GET'])
+# @api_bp.route('/account', methods=['GET'])
 @token_required
 def get_account():
     try:
