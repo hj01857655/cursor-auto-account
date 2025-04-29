@@ -18,7 +18,6 @@
 ![img.png](./.assets/image-1745820621145.png)
 拿到账号密码，到自己的浏览器登录，[到这里](https://tempmail.plus/en/#!) 获取验证码
 
-需要改一下名称 , 代码改了一下 现在填  fuckcursor
 
 ![image-20250428115252533](./.assets/image-20250428115252533.png)
 
