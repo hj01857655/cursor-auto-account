@@ -9,7 +9,7 @@ db = SQLAlchemy()
 # 用户模型
 class User(db.Model):
     __tablename__ = 'users'
-    
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     username = Column(String(80), unique=True, nullable=False)
     password_hash = Column(String(128), nullable=False)
@@ -18,10 +18,10 @@ class User(db.Model):
     last_login = Column(BigInteger, nullable=True)
     domain = Column(String(255), default='zoowayss.top')
     temp_email_address = Column(String(255), default='zoowayss@mailto.plus',nullable=True)
-    
+
     # 关联用户的账号
     accounts = relationship("Account", back_populates="user")
-    
+
     def to_dict(self):
         return {
             'id': self.id,
@@ -32,20 +32,20 @@ class User(db.Model):
             'domain': self.domain,
             'temp_email_address': self.temp_email_address
         }
-    
+
     @staticmethod
     def hash_password(password):
         import hashlib
         # 简单哈希密码，生产环境应使用更安全的方法如bcrypt
         return hashlib.sha256(password.encode()).hexdigest()
-    
+
     def verify_password(self, password):
         return self.password_hash == User.hash_password(password)
 
 # 定义账号模型
 class Account(db.Model):
     __tablename__ = 'accounts'
-    
+
     id = Column(Integer, primary_key=True, autoincrement=True)
     email = Column(String(255), unique=True, nullable=False)
     password = Column(String(255), nullable=False)
@@ -54,11 +54,12 @@ class Account(db.Model):
     create_time = Column(BigInteger, nullable=False)
     expire_time = Column(BigInteger, nullable=False)
     is_used = Column(Integer, default=0)  # 0: 未使用, 1: 已使用
+    is_deleted = Column(Integer, default=0)  # 0: 未删除, 1: 已删除
     user_id = Column(Integer, ForeignKey('users.id'), nullable=True)  # 关联到用户
-    
+
     # 关联用户
     user = relationship("User", back_populates="accounts")
-    
+
     def to_dict(self):
         data = {
             'id': self.id,
@@ -69,13 +70,14 @@ class Account(db.Model):
             'create_time': self.create_time,
             'expire_time': self.expire_time,
             'is_used': self.is_used,
+            'is_deleted': self.is_deleted,
             'expire_time_fmt': datetime.fromtimestamp(self.expire_time).strftime('%Y-%m-%d %H:%M:%S')
         }
-        
+
         # 安全地添加user_id，如果有这个属性
         try:
             data['user_id'] = self.user_id
         except:
             data['user_id'] = None
-            
-        return data 
+
+        return data

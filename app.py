@@ -14,21 +14,10 @@ from auth import SECRET_KEY, TOKEN_EXPIRY_DAYS
 import auth
 from db_utils import init_db
 from views.api import api_bp
-from views.web import web_bp
 
 # 创建并配置 Flask 应用
 def create_app():
     app = Flask(__name__)
-    
-    # 添加内置函数到Jinja2环境
-    app.jinja_env.globals.update(max=max, min=min)
-    
-    # 添加Jinja2过滤器 - 时间戳转日期
-    @app.template_filter('timestamp_to_date')
-    def timestamp_to_date(timestamp):
-        if not timestamp:
-            return ""
-        return datetime.fromtimestamp(int(timestamp)).strftime('%Y-%m-%d %H:%M:%S')
     
     # 从环境变量获取数据库配置
     app.config['DB_HOST'] = os.getenv('DB_HOST', 'localhost')
@@ -55,10 +44,6 @@ def create_app():
     
     # 注册蓝图
     app.register_blueprint(api_bp)
-    app.register_blueprint(web_bp)
-    
-    # 为web蓝图设置app配置
-    web_bp.config = app.config
     
     return app
 
@@ -66,10 +51,6 @@ def create_app():
 if __name__ == '__main__':
     # 创建应用
     app = create_app()
-    
-    # 创建templates目录
-    if not os.path.exists('templates'):
-        os.makedirs('templates')
     
     # 初始化数据库
     init_db(app)
