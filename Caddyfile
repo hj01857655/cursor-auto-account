@@ -5,24 +5,56 @@ cursor-account.zoowayss.top {
     # 开启 gzip 压缩
     encode gzip
 
-    # 反向代理到 Flask 应用
-    reverse_proxy localhost:8001 {
-        # 健康检查使用API路由而不是根路径
-        health_path /api/health
-        health_interval 30s
-        health_timeout 5s
-        health_status 200
-        
-        # 转发请求头
-        header_up Host {host}
-        header_up X-Real-IP {remote}
-        header_up X-Forwarded-For {remote}
-        header_up X-Forwarded-Proto {scheme}
-        
-        # 设置连接超时
-        transport http {
-            keepalive 60s
+    # 提供前端静态资源
+    root * /usr/local/share/caddy/cursor-auto-account/build
+
+    # 处理静态资源请求
+    handle /static/* {
+        file_server
+    }
+
+    # 处理根路径资源
+    handle /favicon.ico {
+        file_server
+    }
+    handle /manifest.json {
+        file_server
+    }
+    handle /logo192.png {
+        file_server
+    }
+    handle /logo512.png {
+        file_server
+    }
+    handle /robots.txt {
+        file_server
+    }
+    handle /asset-manifest.json {
+        file_server
+    }
+
+    # 代理 API 请求到后端服务
+    handle /api/* {
+        reverse_proxy localhost:8001 {
+            # 健康检查使用API路由而不是根路径
+            health_path /api/health
+            health_interval 30s
+            health_timeout 5s
+            health_status 200
+            header_up Host {host}
+            header_up X-Real-IP {remote}
+            header_up X-Forwarded-For {remote}
+            header_up X-Forwarded-Proto {scheme}
+            transport http {
+                keepalive 60s
+            }
         }
+    }
+
+    # 处理所有其他请求 - 对于SPA应用，返回index.html
+    handle {
+        try_files {path} /index.html
+        file_server
     }
 
     # 日志配置
@@ -45,17 +77,8 @@ cursor-account.zoowayss.top {
         X-Frame-Options "DENY"
         Referrer-Policy "strict-origin-when-cross-origin"
         X-XSS-Protection "1; mode=block"
-        
+
         # 移除服务器信息
         -Server
     }
 }
-
-# 本地开发环境 - 使用端口
-:8081 {
-    reverse_proxy localhost:8001 {
-        # 同样使用API路由的健康检查
-        health_path /api/health
-        health_status 200
-    }
-} 
