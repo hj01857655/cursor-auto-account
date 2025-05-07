@@ -25,6 +25,7 @@ class BrowserManager:
         co.set_pref("credentials_enable_service", False)
         co.set_argument("--hide-crash-restore-bubble")
         co.set_argument("--remote-debugging-port=9222")
+        co.set_argument("--remote-debugging-address=0.0.0.0")
         co.set_argument("--no-sandbox")
         co.set_argument("--disable-gpu")
         if user_agent:

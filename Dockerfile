@@ -10,6 +10,7 @@ RUN apt-get update && apt-get install -y \
     xvfb \
     libxi6 \
     libgconf-2-4 \
+    socat \
     && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
     && echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list \
     && apt-get update \
@@ -18,19 +19,29 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # 复制项目文件
-COPY . .
+COPY requirements.txt .
 
 # 安装Python依赖
-RUN pip install --no-cache-dir -r requirements.txt -i https://pypi.tuna.tsinghua.edu.cn/simple
+RUN pip install --no-cache-dir -r requirements.txt
 
-# 创建模板目录
-RUN mkdir -p templates
+# 复制项目文件
+COPY . .
+
+# 创建模板目录和截图目录
+RUN mkdir -p templates screenshots
 
 # 暴露端口
-EXPOSE 8000
+EXPOSE 8001 9223
 
 # 设置环境变量
 ENV PYTHONUNBUFFERED=1
+ENV HOST=0.0.0.0
+ENV PORT=8001
+ENV DEBUG=false
+
+# 创建启动脚本
+COPY start.sh /start.sh
+RUN chmod +x /start.sh
 
 # 启动服务
-CMD ["python", "app.py"] 
+CMD ["/start.sh"]

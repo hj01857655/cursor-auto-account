@@ -6,24 +6,31 @@ services:
   app:
     build:
       context: .
-      dockerfile: Dockerfile.slim  # 使用精简Dockerfile
+      dockerfile: Dockerfile  # 使用更新后的Dockerfile
     container_name: cursor-app
     restart: always
     environment:
       - DEBUG=false
-      - DB_HOST=localhost
-      - DB_PORT=3306
-      - DB_USER=root
-      - DB_PASSWORD=root
-      - DB_NAME=cursor_accounts
+      - DB_HOST=${DB_HOST:-localhost}
+      - DB_PORT=${DB_PORT:-3306}
+      - DB_USER=${DB_USER:-root}
+      - DB_PASSWORD=${DB_PASSWORD:-root}
+      - DB_NAME=${DB_NAME:-cursor_accounts}
+      - SECRET_KEY=${SECRET_KEY:-your_secret_key}
+      - TOKEN_EXPIRY_DAYS=${TOKEN_EXPIRY_DAYS:-30}
+      - ADMIN_USERNAME=${ADMIN_USERNAME:-admin}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD:-admin}
+      - EMAIL_DOMAIN=${EMAIL_DOMAIN:-zoowayss.eu.org}
     volumes:
       - ./screenshots:/app/screenshots
-      - /usr/bin/google-chrome:/usr/bin/google-chrome  # 映射宿主机的Chrome
-      - /usr/lib/chromium-browser:/usr/lib/chromium-browser  # 可能需要的依赖库
+      # 如果宿主机上有Chrome，可以映射以下路径，否则使用容器内的Chrome
+      # - /usr/bin/google-chrome:/usr/bin/google-chrome
+      # - /usr/lib/chromium-browser:/usr/lib/chromium-browser
       - /usr/share/fonts/:/usr/share/fonts/  # 字体文件
       - /etc/fonts/:/etc/fonts/  # 字体配置
     ports:
-      - "8001:8000"  # 映射到8001端口以适配Caddy配置
+      - "8001:8001"  # 映射到8001端口以适配Caddy配置
+      - "9223:9223"  # 映射到9223端口以适配DrissionPage配置
     networks:
       - cursor_network
 
