@@ -34,7 +34,7 @@
 
 1. 同一个域名，账号注册过多会导致全部账号实效。这里后续会使用用户提供的域名，自己用自己的域名。
 
-   没有域名怎么办  [看这里](https://linux.do/t/topic/26864) 
+   没有域名怎么办  [看这里](https://linux.do/t/topic/26864)
 
    有了域名，还需要配置 cf 邮箱转发
 
@@ -44,19 +44,90 @@
 
 1. 克隆仓库
 ```bash
-git clone https://github.com/yourusername/cursor-auto-account.git
+git clone https://github.com/zoowayss/cursor-auto-account.git
 cd cursor-auto-account
 ```
 
-2. 启动项目
+2. 配置环境变量（可选）
+创建 `.env` 文件并设置以下环境变量：
 ```
+DB_HOST=your_db_host
+DB_PORT=3306
+DB_USER=your_db_user
+DB_PASSWORD=your_db_password
+DB_NAME=your_db_name
+SECRET_KEY=your_secret_key
+TOKEN_EXPIRY_DAYS=30
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=admin
+EMAIL_DOMAIN=your_email_domain
+```
+
+3. 启动服务
+```bash
+docker-compose up -d
+```
+
+> 注意：如果不创建 `.env` 文件，将使用 docker-compose.yml 中的默认值
+
+### 使用 Docker 直接部署
+
+如果您不想使用 Docker Compose，也可以直接使用 Docker 命令部署：
+
+1. 构建 Docker 镜像
+```bash
+docker build -t cursor-auto-account .
+```
+
+2. 运行 Docker 容器
+```bash
+docker run -d --name cursor-account \
+  -p 8001:8001 \
+  -p 9223:9223 \
+  -e DB_HOST=your_db_host \
+  -e DB_USER=your_db_user \
+  -e DB_PASSWORD=your_db_password \
+  -e DB_NAME=your_db_name \
+  -e DB_PORT=3306 \
+  cursor-auto-account
+```
+
+> 注意：请替换上述命令中的数据库连接信息为您自己的配置
+
+### 关于 Chrome 调试端口
+
+- 容器内的 Chrome 调试端口为 9222
+- 通过 socat 将容器内的 9222 端口映射到 9223 端口，使其可以从外部访问
+- 您可以通过访问 `http://localhost:9223` 来连接到 Chrome 调试界面
+
+#### socat 端口转发说明
+
+本项目使用 socat 工具实现端口转发，将容器内的 Chrome 调试端口 (9222) 映射到可从外部访问的端口 (9223)。这样做的好处是：
+
+1. 解决了 Chrome 调试端口只监听 127.0.0.1 的限制
+2. 使得宿主机和其他网络设备可以直接访问 Chrome 调试功能
+3. 无需修改 Chrome 的启动参数或配置
+
+socat 在容器启动时自动运行，无需额外配置。
+
+### 本地开发部署
+
+如果您想在本地开发环境中运行项目：
+
+1. 安装依赖
+```bash
+pip install -r requirements.txt
+# 或使用 uv 加速安装
 uv pip install -r requirements.txt
+```
+
+2. 启动项目
+```bash
 python app.py
 ```
 
-
-4. 访问服务
-   - 网页界面: http://localhost:8081
+3. 访问服务
+   - 网页界面: http://localhost:8001
 
 ## 免责声明
 
@@ -70,4 +141,4 @@ python app.py
 [![Star History Chart](https://api.star-history.com/svg?repos=zoowayss/cursor-auto-account&type=Date)](https://www.star-history.com/#zoowayss/cursor-auto-account&Date)
 ## 许可证
 
-MIT 
+MIT
