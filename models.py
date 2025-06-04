@@ -1,6 +1,5 @@
-import time
 from datetime import datetime
-from sqlalchemy import Column, Integer, String, BigInteger, ForeignKey, Boolean
+from sqlalchemy import Column, Integer, String, BigInteger, ForeignKey
 from sqlalchemy.orm import relationship
 from flask_sqlalchemy import SQLAlchemy
 
@@ -21,7 +20,7 @@ class User(db.Model):
 
     # 关联用户的账号
     accounts = relationship("Account", back_populates="user")
-
+    # 
     def to_dict(self):
         return {
             'id': self.id,
@@ -57,6 +56,15 @@ class Account(db.Model):
     is_deleted = Column(Integer, default=0)  # 0: 未删除, 1: 已删除
     user_id = Column(Integer, ForeignKey('users.id'), nullable=True)  # 关联到用户
 
+    # 新增字段
+    accessToken = Column(String(255), nullable=True)  # 访问令牌
+    usage = Column(Integer, default=0)  # 使用量
+    days = Column(Integer, default=0)  # 天数
+    usage_limit = Column(String(50), default=None)  # 使用限制
+    account_type = Column(String(20), default='free')  # 账号类型: free, pro, etc.
+    status = Column(String(20), default='active')  # 状态: active, inactive, banned, etc.
+    workos_session_token = Column(String(1000), nullable=True)  # WorkosCursorSessionToken
+
     # 关联用户
     user = relationship("User", back_populates="accounts")
 
@@ -71,7 +79,15 @@ class Account(db.Model):
             'expire_time': self.expire_time,
             'is_used': self.is_used,
             'is_deleted': self.is_deleted,
-            'expire_time_fmt': datetime.fromtimestamp(self.expire_time).strftime('%Y-%m-%d %H:%M:%S')
+            'expire_time_fmt': datetime.fromtimestamp(self.expire_time).strftime('%Y-%m-%d %H:%M:%S'),
+            # 新增字段
+            'accessToken': self.accessToken,
+            'usage': self.usage,
+            'days': self.days,
+            'usage_limit': self.usage_limit,
+            'account_type': self.account_type,
+            'status': self.status,
+            'workos_session_token': self.workos_session_token
         }
 
         # 安全地添加user_id，如果有这个属性

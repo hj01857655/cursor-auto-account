@@ -31,7 +31,7 @@ class BrowserManager:
         if user_agent:
             co.set_user_agent(user_agent)
 
-        co.headless()  # 生产环境使用无头模式
+        # co.headless()  # 生产环境使用无头模式
 
         return co
 
