@@ -1,8 +1,7 @@
 import os
 import random
 import string
-from datetime import datetime
-from flask import Flask
+from flask import Flask, render_template_string
 from dotenv import load_dotenv
 
 # 加载.env文件
@@ -10,7 +9,6 @@ load_dotenv()
 
 # 导入自定义模块
 from models import db
-from auth import SECRET_KEY, TOKEN_EXPIRY_DAYS
 import auth
 from db_utils import init_db
 from views.api import api_bp
